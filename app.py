@@ -15,7 +15,7 @@ import urllib.request
 import urllib.parse
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "1.1.1"
+APP_VERSION     = "1.0.0"
 GITHUB_REPO     = "CrowSo/grabbit-app"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -960,6 +960,10 @@ def check_for_updates():
     except Exception as e:
         print(f"[Grabbit] Update check failed: {e}")
         update_status["checked"] = True
+
+@app.route("/api/version")
+def api_version():
+    return jsonify({"version": APP_VERSION})
 
 @app.route("/api/update/status")
 def update_check_status():

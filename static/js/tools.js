@@ -165,3 +165,13 @@ async function refreshAboutCounter() {
 }
 
 refreshAboutCounter();
+
+// ── Load app version from server ──────────────────────────
+(async function loadAppVersion() {
+  try {
+    const res  = await fetch('/api/version');
+    const data = await res.json();
+    const el   = document.getElementById('app-version');
+    if (el && data.version) el.textContent = `v${data.version}`;
+  } catch { /* ignore */ }
+})();
