@@ -15,7 +15,7 @@ import urllib.request
 import urllib.parse
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "1.0.0"
+APP_VERSION     = "1.1.2"
 GITHUB_REPO     = "CrowSo/grabbit-app"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
