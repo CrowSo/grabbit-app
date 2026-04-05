@@ -249,11 +249,21 @@ async function checkForUpdates() {
     document.body.appendChild(toast);
 
     document.getElementById('update-now-btn').onclick = async () => {
-      toast.querySelector('#update-now-btn').textContent = 'Downloading...';
-      toast.querySelector('#update-now-btn').disabled = true;
-      const r = await fetch('/api/update/apply', { method: 'POST' });
-      const d = await r.json();
-      if (d.releases_url) window.open(d.releases_url, '_blank');
+      const btn = toast.querySelector('#update-now-btn');
+      btn.textContent = 'Opening...';
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/update/apply', { method: 'POST' });
+        const d = await r.json();
+        if (d.download_url) {
+          window.open(d.download_url, '_blank');
+          btn.textContent = 'Downloading...';
+          setTimeout(() => toast.remove(), 3000);
+        }
+      } catch {
+        btn.textContent = 'Update now';
+        btn.disabled = false;
+      }
     };
     document.getElementById('update-dismiss-btn').onclick = () => toast.remove();
   } catch { /* ignore */ }

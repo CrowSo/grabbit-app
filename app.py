@@ -15,7 +15,7 @@ import urllib.request
 import urllib.parse
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "1.1.0"
+APP_VERSION     = "1.1.1"
 GITHUB_REPO     = "CrowSo/grabbit-app"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -967,36 +967,9 @@ def update_check_status():
 
 @app.route("/api/update/apply", methods=["POST"])
 def update_apply():
-    """Download and apply update zip from GitHub."""
-    if not update_status.get("available"):
-        return jsonify({"error": "No update available"})
-
-    url = update_status.get("url")
-    if not url or not url.endswith(".zip"):
-        # Just open the releases page
-        return jsonify({"error": "No zip asset found", "releases_url": f"https://github.com/{GITHUB_REPO}/releases/latest"})
-
-    def do_update():
-        try:
-            zip_path = BASE_DIR / "grabbit_update.zip"
-            urllib.request.urlretrieve(url, zip_path)
-
-            with zipfile.ZipFile(zip_path, "r") as z:
-                # Only extract app files, never data/
-                for member in z.namelist():
-                    if any(member.startswith(p) for p in ["data/", "tools/", ".grabbit_tmp/"]):
-                        continue
-                    z.extract(member, BASE_DIR)
-
-            zip_path.unlink(missing_ok=True)
-            print("[Grabbit] Update applied — restarting")
-            # Restart Flask
-            os.execv(sys.executable, [sys.executable] + sys.argv)
-        except Exception as e:
-            print(f"[Grabbit] Update failed: {e}")
-
-    threading.Thread(target=do_update, daemon=True).start()
-    return jsonify({"ok": True, "message": "Downloading update..."})
+    """Direct user to download the new installer."""
+    download_url = f"https://github.com/{GITHUB_REPO}/releases/latest/download/GrabbitSetup.exe"
+    return jsonify({"ok": True, "download_url": download_url})
 
 # ── AUTO-UPDATE CHECK ON STARTUP ──────────────────────────
 def auto_setup():
