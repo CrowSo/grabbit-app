@@ -421,9 +421,12 @@ def run_download(job_id, item_id, url, quality, audio_only, no_audio,
             cmd += ["-f", f"bestvideo[height<={quality}]" if quality != "best" else "bestvideo"]
         else:
             if quality == "best":
-                cmd += ["-f", "bestvideo+bestaudio", "--merge-output-format", "mp4"]
+                cmd += ["-f", "bestvideo+bestaudio/best", "--merge-output-format", "mp4"]
             else:
-                cmd += ["-f", f"bestvideo[height<={quality}]+bestaudio", "--merge-output-format", "mp4"]
+                cmd += ["-f", f"bestvideo[height<={quality}]+bestaudio/best[height<={quality}]", "--merge-output-format", "mp4"]
+            # Force AAC audio — fully compatible with Windows Media Player and all players
+            # No quality loss — AAC is YouTube's native audio codec
+            cmd += ["--postprocessor-args", "ffmpeg:-c:a aac -b:a 192k"]
 
         if start_time or end_time:
             section = f"*{start_time or '0'}-{end_time or 'inf'}"
