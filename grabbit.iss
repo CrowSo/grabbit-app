@@ -66,6 +66,8 @@ Type: filesandordirs; Name: "{app}\.grabbit_tmp"
 
 [Code]
 function InitializeSetup(): Boolean;
+var
+  ResultCode: Integer;
 begin
   // Kill running Grabbit instance before installing
   Exec('taskkill.exe', '/F /IM Grabbit.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
