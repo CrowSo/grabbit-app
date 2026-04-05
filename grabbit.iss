@@ -18,6 +18,12 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
 AppUpdatesURL={#AppURL}
+AppCopyright=Copyright (C) 2026 Grabbit
+VersionInfoVersion={#AppVersion}
+VersionInfoCompany=Grabbit
+VersionInfoDescription=Grabbit Video Downloader
+VersionInfoProductName=Grabbit
+VersionInfoProductVersion={#AppVersion}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
@@ -30,8 +36,11 @@ WizardStyle=modern
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 UninstallDisplayIcon={app}\{#AppExeName}
+UninstallDisplayName=Grabbit
 CloseApplications=yes
+CloseApplicationsFilter=*.exe
 RestartApplications=no
+MissingRunOnceIdsWarning=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -56,6 +65,13 @@ Type: filesandordirs; Name: "{app}\__pycache__"
 Type: filesandordirs; Name: "{app}\.grabbit_tmp"
 
 [Code]
+function InitializeSetup(): Boolean;
+begin
+  // Kill running Grabbit instance before installing
+  Exec('taskkill.exe', '/F /IM Grabbit.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Result := True;
+end;
+
 // Keep user data folder on uninstall
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
