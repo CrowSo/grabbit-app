@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Grabbit</title>
+  <meta name="description" content="Grabbit Privacy Policy. We collect minimal data and never sell your information." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://appgrabbit.com/privacy/" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+    <span class="logo-name">Grab<span>bit</span></span>
+  </a>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <a href="/" class="active">EN</a>
+      <a href="/es/">ES</a>
+      <a href="/pt/">PT</a>
+    </div>
+  </div>
+</nav>
+
+<div class="prose-page">
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: April 4, 2026</p>
+
+  <p>This Privacy Policy describes how Grabbit ("the App"), operated by Javier Enrique Calixto Hernandez, collects, uses, and protects your information. I am committed to minimal data collection and never selling your data.</p>
+
+  <h2>1. What Data We Collect</h2>
+
+  <p><strong style="color:var(--text);">License purchases (via Stripe):</strong> When you purchase a Pro license, Stripe processes your payment. Stripe collects your email address and payment information. I receive only your email address and the transaction result — I never see or store your credit card details.</p>
+
+  <p><strong style="color:var(--text);">License verification (via Supabase):</strong> Your license code and email are stored in a secure database (Supabase) to verify your Pro subscription. This includes: email address, license code, plan type, activation date, and days remaining. This data is used solely to validate your license.</p>
+
+  <p><strong style="color:var(--text);">App usage (local only):</strong> Grabbit stores your settings (save folder, theme, language) and download history locally on your PC in the <code style="background:var(--card);padding:1px 5px;border-radius:4px;font-size:0.85rem;">data/</code> folder. This data never leaves your device unless explicitly stated.</p>
+
+  <p><strong style="color:var(--text);">Update checks:</strong> On startup, the App queries the GitHub API to check for updates. This request includes your IP address as part of standard HTTP communication — no additional data is sent.</p>
+
+  <h2>2. What We Do Not Collect</h2>
+  <ul>
+    <li>We do not track which videos you download</li>
+    <li>We do not collect analytics or usage statistics</li>
+    <li>We do not use advertising trackers or pixels</li>
+    <li>We do not sell, rent, or share your data with third parties</li>
+  </ul>
+
+  <h2>3. Third-Party Services</h2>
+  <p>Grabbit uses the following third-party services, each with their own privacy policies:</p>
+  <ul>
+    <li><strong style="color:var(--text);">Stripe</strong> — payment processing (stripe.com/privacy)</li>
+    <li><strong style="color:var(--text);">Supabase</strong> — license database (supabase.com/privacy)</li>
+    <li><strong style="color:var(--text);">Resend</strong> — transactional email delivery (resend.com/privacy)</li>
+    <li><strong style="color:var(--text);">GitHub</strong> — app updates and downloads (docs.github.com/en/site-policy/privacy-policies)</li>
+  </ul>
+
+  <h2>4. Data Security</h2>
+  <p>License data is stored in Supabase with row-level security enabled. Only authenticated server processes can write to the database. Your email and license code are not exposed publicly.</p>
+
+  <h2>5. Data Retention</h2>
+  <p>License records are retained as long as your account is active. If you request deletion of your data, contact support@appgrabbit.com and I will remove your record from the database within 7 days.</p>
+
+  <h2>6. Your Rights</h2>
+  <p>You have the right to access, correct, or delete your personal data at any time. To exercise these rights, contact: <a href="mailto:support@appgrabbit.com">support@appgrabbit.com</a></p>
+
+  <h2>7. Children's Privacy</h2>
+  <p>Grabbit is not directed at children under 13. I do not knowingly collect personal information from children.</p>
+
+  <h2>8. Changes to This Policy</h2>
+  <p>This Privacy Policy may be updated occasionally. The most current version will always be available at appgrabbit.com/privacy.</p>
+
+  <h2>9. Contact</h2>
+  <p>For any privacy-related questions: <a href="mailto:support@appgrabbit.com">support@appgrabbit.com</a></p>
+</div>
+
+<footer>
+  <a href="/" class="footer-logo">
+    <div class="logo-icon" style="width:28px;height:28px;border-radius:8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;color:#fff;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+    <span class="logo-name" style="font-size:1rem;">Grab<span>bit</span></span>
+  </a>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="https://discord.gg/QDcbsavQ" target="_blank">Discord</a>
+    <a href="mailto:support@appgrabbit.com">Support</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
+  </div>
+  <div class="footer-copy">© 2026 Grabbit · appgrabbit.com</div>
+</footer>
+</body>
+</html>

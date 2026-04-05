@@ -1,0 +1,7 @@
+# Grabbit — Netlify Redirects
+
+# Clean URLs already handled by folder structure (index.html in each folder)
+# Force HTTPS
+http://appgrabbit.com/* https://appgrabbit.com/:splat 301!
+http://www.appgrabbit.com/* https://appgrabbit.com/:splat 301!
+https://www.appgrabbit.com/* https://appgrabbit.com/:splat 301!
