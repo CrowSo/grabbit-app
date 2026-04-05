@@ -1,0 +1,46 @@
+/* ============================================================
+   GRABBIT — theme-forest.css
+   Deep forest greens, moss, amber accents
+   ============================================================ */
+
+[data-theme="forest"] {
+  --bg-base: #060e08;
+  --bg-subtle: #0c1810;
+  --card-bg: #101f13;
+  --input-bg: #0c1810;
+
+  --sidebar-bg: linear-gradient(175deg, #040a05 0%, #081208 60%, #0a180b 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
+  --sidebar-muted: rgba(255, 255, 255, 0.15);
+  --sidebar-hover: rgba(134, 200, 100, 0.07);
+  --sidebar-active-bg: rgba(134, 200, 100, 0.1);
+  --sidebar-glow: rgba(80, 160, 60, 0.2);
+
+  --accent: #7dba52;
+  --accent-hover: #6aa843;
+  --accent-light: #b8e68a;
+  --accent-subtle: rgba(125, 186, 82, 0.1);
+  --accent-glow: rgba(125, 186, 82, 0.2);
+
+  --text-primary: #d8f0c8;
+  --text-secondary: #6a9060;
+  --text-muted: #3a5530;
+
+  --border: rgba(125, 186, 82, 0.08);
+  --border-hover: rgba(125, 186, 82, 0.22);
+
+  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --badge-bg: rgba(125, 186, 82, 0.06);
+  --progress-track: rgba(125, 186, 82, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="forest"] .progress-bar-fill {
+  box-shadow: 0 0 10px rgba(125, 186, 82, 0.5);
+}

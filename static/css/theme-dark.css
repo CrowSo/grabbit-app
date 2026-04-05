@@ -1,0 +1,71 @@
+/* ============================================================
+   GRABBIT — theme-dark.css
+   Identity: Deep space navy, electric cyan/violet accent, glowing depth
+   Feeling: Immersive, focused, premium dark tool — NOT just inverted light
+   ============================================================ */
+
+[data-theme="dark"] {
+  /* Backgrounds — layered depth */
+  --bg-base: #080c18;
+  --bg-subtle: #0e1224;
+  --card-bg: #111827;
+  --input-bg: #0e1224;
+
+  /* Sidebar — even deeper, barely distinct from content but textured */
+  --sidebar-bg: linear-gradient(175deg, #060a14 0%, #0a0e20 60%, #0d0a24 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
+  --sidebar-muted: rgba(255, 255, 255, 0.15);
+  --sidebar-hover: rgba(99, 179, 237, 0.07);
+  --sidebar-active-bg: rgba(99, 179, 237, 0.1);
+  --sidebar-glow: rgba(56, 189, 248, 0.2);
+
+  /* Accent — electric cyan, completely different from light's violet */
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --accent-light: #7dd3fc;
+  --accent-subtle: rgba(56, 189, 248, 0.1);
+  --accent-glow: rgba(56, 189, 248, 0.2);
+
+  /* Text */
+  --text-primary: #e2e8f8;
+  --text-secondary: #7b8db0;
+  --text-muted: #4a5578;
+
+  /* Borders — subtle, glowing when hovered */
+  --border: rgba(56, 189, 248, 0.08);
+  --border-hover: rgba(56, 189, 248, 0.2);
+
+  /* Components */
+  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --badge-bg: rgba(56, 189, 248, 0.06);
+  --progress-track: rgba(56, 189, 248, 0.1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark-specific card glow on hover */
+[data-theme="dark"] .lib-item:hover {
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .card {
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset;
+}
+
+/* Dark mode progress bar — cyan glow */
+[data-theme="dark"] .progress-bar-fill {
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+/* Dark topbar subtle separator */
+[data-theme="dark"] .topbar {
+  background: rgba(8, 12, 24, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

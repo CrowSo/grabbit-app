@@ -1,0 +1,47 @@
+/* ============================================================
+   GRABBIT — theme-ember.css
+   Volcanic dark, molten orange, ash backgrounds
+   ============================================================ */
+
+[data-theme="ember"] {
+  --bg-base: #100804;
+  --bg-subtle: #1c1008;
+  --card-bg: #1e120a;
+  --input-bg: #1c1008;
+
+  --sidebar-bg: linear-gradient(175deg, #0c0602 0%, #160e06 60%, #1a0e07 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
+  --sidebar-muted: rgba(255, 255, 255, 0.15);
+  --sidebar-hover: rgba(255, 130, 40, 0.08);
+  --sidebar-active-bg: rgba(255, 130, 40, 0.12);
+  --sidebar-glow: rgba(220, 80, 20, 0.25);
+
+  --accent: #f97316;
+  --accent-hover: #ea6a0a;
+  --accent-light: #fdba74;
+  --accent-subtle: rgba(249, 115, 22, 0.1);
+  --accent-glow: rgba(249, 115, 22, 0.25);
+
+  --text-primary: #fde8d0;
+  --text-secondary: #a06040;
+  --text-muted: #603820;
+
+  --border: rgba(249, 115, 22, 0.08);
+  --border-hover: rgba(249, 115, 22, 0.25);
+
+  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --badge-bg: rgba(249, 115, 22, 0.06);
+  --progress-track: rgba(249, 115, 22, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="ember"] .progress-bar-fill {
+  background: linear-gradient(90deg, #f97316, #fbbf24);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+}

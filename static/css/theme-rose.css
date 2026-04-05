@@ -1,0 +1,47 @@
+/* ============================================================
+   GRABBIT — theme-rose.css
+   Deep mauve, dusty rose, soft pink accents
+   ============================================================ */
+
+[data-theme="rose"] {
+  --bg-base: #100610;
+  --bg-subtle: #1a0c1c;
+  --card-bg: #1e1020;
+  --input-bg: #1a0c1c;
+
+  --sidebar-bg: linear-gradient(175deg, #0c040e 0%, #150a18 60%, #1a0d1e 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
+  --sidebar-muted: rgba(255, 255, 255, 0.15);
+  --sidebar-hover: rgba(240, 100, 160, 0.07);
+  --sidebar-active-bg: rgba(240, 100, 160, 0.1);
+  --sidebar-glow: rgba(200, 60, 130, 0.2);
+
+  --accent: #f472b6;
+  --accent-hover: #ec4aa8;
+  --accent-light: #fbb6d4;
+  --accent-subtle: rgba(244, 114, 182, 0.1);
+  --accent-glow: rgba(244, 114, 182, 0.22);
+
+  --text-primary: #fce8f4;
+  --text-secondary: #a060a0;
+  --text-muted: #603060;
+
+  --border: rgba(244, 114, 182, 0.08);
+  --border-hover: rgba(244, 114, 182, 0.25);
+
+  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --badge-bg: rgba(244, 114, 182, 0.06);
+  --progress-track: rgba(244, 114, 182, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="rose"] .progress-bar-fill {
+  background: linear-gradient(90deg, #f472b6, #e879f9);
+  box-shadow: 0 0 10px rgba(244, 114, 182, 0.5);
+}

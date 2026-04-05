@@ -1,0 +1,50 @@
+/* ============================================================
+   GRABBIT — theme-ocean.css
+   Deep sea blues, bioluminescent accents, underwater depth
+   ============================================================ */
+
+[data-theme="ocean"] {
+  --bg-base: #030d1a;
+  --bg-subtle: #071525;
+  --card-bg: #0a1e33;
+  --input-bg: #071525;
+
+  --sidebar-bg: linear-gradient(175deg, #020b14 0%, #041220 60%, #051830 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.9);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
+  --sidebar-muted: rgba(255, 255, 255, 0.15);
+  --sidebar-hover: rgba(0, 210, 200, 0.07);
+  --sidebar-active-bg: rgba(0, 210, 200, 0.12);
+  --sidebar-glow: rgba(0, 180, 200, 0.25);
+
+  --accent: #00d4c8;
+  --accent-hover: #00bab0;
+  --accent-light: #67e8f9;
+  --accent-subtle: rgba(0, 212, 200, 0.1);
+  --accent-glow: rgba(0, 212, 200, 0.25);
+
+  --text-primary: #d0f0f8;
+  --text-secondary: #5a9ab5;
+  --text-muted: #2e6070;
+
+  --border: rgba(0, 212, 200, 0.08);
+  --border-hover: rgba(0, 212, 200, 0.22);
+
+  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --chip-bg: rgba(255, 255, 255, 0.04);
+  --badge-bg: rgba(0, 212, 200, 0.06);
+  --progress-track: rgba(0, 212, 200, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="ocean"] .progress-bar-fill {
+  box-shadow: 0 0 10px rgba(0, 212, 200, 0.6);
+}
+
+[data-theme="ocean"] .card {
+  box-shadow: 0 1px 0 rgba(0, 212, 200, 0.05) inset;
+}

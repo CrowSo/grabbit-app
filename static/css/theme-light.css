@@ -1,0 +1,50 @@
+/* ============================================================
+   GRABBIT — theme-light.css
+   Identity: Crisp white content, deep indigo sidebar, electric violet accent
+   Feeling: Professional, clean, modern — like a premium Mac app
+   ============================================================ */
+
+[data-theme="light"] {
+  /* Backgrounds */
+  --bg-base: #f0f2f8;
+  --bg-subtle: #e8eaf2;
+  --card-bg: #ffffff;
+  --input-bg: #f7f8fc;
+
+  /* Sidebar — deep indigo gradient, its own world */
+  --sidebar-bg: linear-gradient(175deg, #1e2761 0%, #2d1b69 60%, #3d1a7a 100%);
+  --sidebar-text: rgba(255, 255, 255, 0.95);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.45);
+  --sidebar-muted: rgba(255, 255, 255, 0.25);
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.14);
+  --sidebar-glow: rgba(139, 92, 246, 0.4);
+
+  /* Accent */
+  --accent: #5b6ef5;
+  --accent-hover: #4558f0;
+  --accent-light: #a5b4fc;
+  --accent-subtle: rgba(91, 110, 245, 0.1);
+  --accent-glow: rgba(91, 110, 245, 0.3);
+
+  /* Text */
+  --text-primary: #1a1f3c;
+  --text-secondary: #4b5280;
+  --text-muted: #8b91b5;
+
+  /* Borders & surfaces */
+  --border: rgba(91, 110, 245, 0.1);
+  --border-hover: rgba(91, 110, 245, 0.25);
+
+  /* Components */
+  --btn-ghost-bg: #ffffff;
+  --btn-ghost-hover: #f0f2f8;
+  --chip-bg: #ffffff;
+  --badge-bg: rgba(91, 110, 245, 0.06);
+  --progress-track: rgba(91, 110, 245, 0.1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(26, 31, 60, 0.06), 0 1px 2px rgba(26, 31, 60, 0.04);
+  --shadow-md: 0 4px 16px rgba(26, 31, 60, 0.08);
+  --shadow-lg: 0 10px 40px rgba(26, 31, 60, 0.12);
+}

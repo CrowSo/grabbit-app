@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grabbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080c18;--card:#111827;--border:rgba(56,189,248,.10);
+      --accent:#38bdf8;--accent-s:rgba(56,189,248,.12);
+      --text:#e2e8f8;--muted:#7b8db0;--dim:#4a5578;
+      --success:#22c55e;--error:#ef4444;--radius:10px;
+    }
+    body{width:340px;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;user-select:none}
+
+    .header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+    .logo{display:flex;align-items:center;gap:8px}
+    .logo-icon{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(56,189,248,.35)}
+    .logo-icon svg{width:14px;height:14px;color:#fff}
+    .logo-name{font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;color:var(--text)}
+    .logo-name span{color:var(--accent)}
+    .server-status{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted)}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:background .3s}
+    .status-dot.online{background:var(--success);box-shadow:0 0 6px var(--success)}
+    .status-dot.offline{background:var(--error)}
+
+    .body{padding:14px 16px}
+    .platform-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+    .platform-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:600;border:1px solid var(--border);color:var(--muted);background:var(--card)}
+    .platform-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+    .platform-badge.youtube{color:#ff4444;border-color:rgba(255,68,68,.3);background:rgba(255,68,68,.08)}
+    .platform-badge.tiktok{color:#00f2ea;border-color:rgba(0,242,234,.3);background:rgba(0,242,234,.08)}
+    .platform-badge.instagram{color:#e1306c;border-color:rgba(225,48,108,.3);background:rgba(225,48,108,.08)}
+    .platform-badge.facebook{color:#1877f2;border-color:rgba(24,119,242,.3);background:rgba(24,119,242,.08)}
+    .platform-badge.twitter{color:#1d9bf0;border-color:rgba(29,155,240,.3);background:rgba(29,155,240,.08)}
+    .platform-badge.pinterest{color:#e60023;border-color:rgba(230,0,35,.3);background:rgba(230,0,35,.08)}
+    .platform-badge.twitch{color:#9146ff;border-color:rgba(145,70,255,.3);background:rgba(145,70,255,.08)}
+    .platform-badge.soundcloud{color:#ff5500;border-color:rgba(255,85,0,.3);background:rgba(255,85,0,.08)}
+    .limit-pill{margin-left:auto;font-size:.68rem;color:var(--muted)}
+    .limit-pill.warn{color:var(--error);font-weight:600}
+
+    .video-card{display:flex;gap:10px;align-items:flex-start;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px}
+    .video-thumb{width:72px;height:40px;border-radius:6px;object-fit:cover;background:#1a2030;flex-shrink:0}
+    .video-info{flex:1;min-width:0}
+    .video-title{font-size:.82rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+    .video-meta{font-size:.7rem;color:var(--muted)}
+    .progress-wrap{height:3px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:8px}
+    .progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease}
+
+    .section-label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+    .chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{padding:4px 11px;border-radius:99px;font-size:.75rem;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+    .chip:hover{border-color:var(--accent);color:var(--accent)}
+    .chip.selected{border-color:var(--accent);background:var(--accent-s);color:var(--accent);font-weight:600}
+
+    .action-row{display:flex;gap:8px;margin-top:4px}
+    .btn{flex:1;padding:9px 14px;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn svg{width:14px;height:14px;flex-shrink:0}
+    .btn-primary{background:var(--accent);color:#fff;box-shadow:0 3px 12px rgba(56,189,248,.25)}
+    .btn-primary:hover{background:#0ea5e9;transform:translateY(-1px)}
+    .btn-primary:active{transform:translateY(0)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .btn-ghost{background:var(--card);color:var(--muted);border:1px solid var(--border);flex:0 0 auto;padding:9px 10px}
+    .btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+
+    .state{padding:28px 16px;text-align:center;color:var(--muted);display:none}
+    .state svg{width:36px;height:36px;opacity:.25;margin:0 auto 10px;display:block}
+    .state p{font-size:.82rem;line-height:1.5}
+    .state .sub{font-size:.72rem;margin-top:4px;opacity:.7}
+    .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .footer{padding:8px 16px 12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .footer-link{font-size:.68rem;color:var(--dim);cursor:pointer;text-decoration:none}
+    .footer-link:hover{color:var(--accent)}
+    .queue-count{font-size:.68rem;color:var(--dim)}
+
+    #main{display:none}
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      <span class="logo-name">Grab<span>bit</span></span>
+    </div>
+    <div class="server-status">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </div>
+
+  <div id="loading" class="state" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="spinner"></div>
+    <p>Loading video info...</p>
+  </div>
+
+  <div id="offline" class="state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <p>Grabbit is not running</p>
+    <p class="sub">Open the app first, then try again.</p>
+  </div>
+
+  <div id="unsupported" class="state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+    </svg>
+    <p>No video detected on this page</p>
+    <p class="sub">Go to YouTube, TikTok, Instagram,<br>Facebook, Twitter, Twitch and more.</p>
+  </div>
+
+  <div id="main">
+    <div class="body">
+      <div class="platform-row">
+        <span class="platform-badge" id="platform-badge">
+          <span class="platform-dot"></span>
+          <span id="platform-name">Unknown</span>
+        </span>
+        <span class="limit-pill" id="limit-pill"></span>
+      </div>
+
+      <div class="video-card">
+        <img class="video-thumb" id="video-thumb" src="" alt="" />
+        <div class="video-info">
+          <div class="video-title" id="video-title">Loading...</div>
+          <div class="video-meta" id="video-meta"></div>
+          <div class="progress-wrap" id="progress-wrap" style="display:none">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Format</div>
+      <div class="chip-row" id="format-chips">
+        <span class="chip selected" data-value="video+audio">Video + Audio</span>
+        <span class="chip" data-value="audio">Audio only</span>
+        <span class="chip" data-value="video">Video only</span>
+      </div>
+
+      <div class="section-label">Quality</div>
+      <div class="chip-row" id="quality-chips">
+        <span class="chip selected" data-value="best">Best</span>
+        <span class="chip" data-value="1080">1080p</span>
+        <span class="chip" data-value="720">720p</span>
+        <span class="chip" data-value="480">480p</span>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="add-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add to Queue
+        </button>
+        <button class="btn btn-ghost" id="open-app-btn" title="Open Grabbit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="queue-count" id="queue-count"></span>
+      <span class="footer-link" id="open-library-btn">View Library →</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
