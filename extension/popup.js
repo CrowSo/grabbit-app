@@ -4,7 +4,7 @@
    ============================================================ */
 
 const SERVER = 'http://localhost:5000';
-const FREE_DAILY_LIMIT = 5;
+const FREE_DAILY_LIMIT = 2;
 
 const PLATFORM_LABELS = {
   youtube: 'YouTube', tiktok: 'TikTok', instagram: 'Instagram',

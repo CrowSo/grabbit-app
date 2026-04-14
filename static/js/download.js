@@ -161,7 +161,7 @@ fetchBtn.addEventListener('click', fetchInfo);
 urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchInfo(); });
 
 // ── Download limits — server is authoritative ──────────────
-const FREE_DAILY_LIMIT  = 5;
+const FREE_DAILY_LIMIT  = 2;
 const PRO_MULTI_LIMIT   = 4;
 
 function isPro() {

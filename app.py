@@ -15,7 +15,7 @@ import urllib.request
 import urllib.parse
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "1.1.2"
+APP_VERSION     = "1.2.0"
 GITHUB_REPO     = "CrowSo/grabbit-app"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -165,10 +165,10 @@ def limits_status():
             pass
 
     used  = get_daily_count()
-    limit = 999999 if is_pro else 5
+    limit = 999999 if is_pro else 2
     return jsonify({
         "used":      used,
-        "limit":     5,  # always show 5 as the free limit in UI
+        "limit":     2,  # free tier: 2 downloads/day
         "remaining": max(0, limit - used),
         "is_pro":    is_pro,
         "allowed":   used < limit,
