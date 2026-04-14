@@ -15,7 +15,7 @@ import urllib.request
 import urllib.parse
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "1.2.0"
+APP_VERSION     = "1.2.1"
 GITHUB_REPO     = "CrowSo/grabbit-app"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -299,10 +299,18 @@ PLATFORM_NAMES = {
 # ─── VIDEO INFO ────────────────────────────────────────────────────────────────
 
 def get_video_info(url):
-    cmd    = [str(YTDLP_PATH), "--dump-json", "--no-playlist", url]
-    result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=30, **WIN_FLAGS)
-    if result.returncode != 0:
+    cmd = [str(YTDLP_PATH), "--dump-json", "--no-playlist", url]
+
+    for attempt in range(2):
+        result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace", timeout=30, **WIN_FLAGS)
+        if result.returncode == 0:
+            break
+        # Retry once on 429 after short delay
+        if "429" in (result.stderr or "") and attempt == 0:
+            time.sleep(2)
+            continue
         raise Exception(result.stderr or "Could not fetch video info")
+
     data    = json.loads(result.stdout)
     formats = []
     seen    = set()
@@ -521,6 +529,17 @@ def run_download(job_id, item_id, url, quality, audio_only, no_audio,
                 download_progress[job_id] = {"status": "done", "pct": 100, "msg": str(out_dir), "save_folder": str(out_dir)}
             update_item_status(item_id, "done")
         else:
+            # If 429, give a clearer message
+            raw_err = " ".join(error_lines)
+            if "429" in raw_err:
+                with progress_lock:
+                    download_progress[job_id] = {
+                        "status": "error", "pct": 0,
+                        "msg": "YouTube is rate-limiting. Please try again in a few seconds.",
+                        "error_code": "rate_limit", "platform": platform_id,
+                    }
+                update_item_status(item_id, "error", {"error_msg": "Rate limited"})
+                return
             err = build_error_msg(error_lines, platform_id)
             # Clean up temp leftovers on error too
             for f in list(TEMP_DIR.iterdir()):
