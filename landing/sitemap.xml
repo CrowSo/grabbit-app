@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- ── Main landing pages ── -->
+  <url>
+    <loc>https://appgrabbit.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- ── Comparison pages (EN) ── -->
+  <url>
+    <loc>https://appgrabbit.com/vs/savefrom/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/savefrom/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/vs/4k-video-downloader/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/4k-video-downloader/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/vs/ssyoutube/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/ssyoutube/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ── Comparison pages (ES) ── -->
+  <url>
+    <loc>https://appgrabbit.com/es/vs/savefrom/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/savefrom/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/vs/4k-video-downloader/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/4k-video-downloader/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/vs/ssyoutube/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/ssyoutube/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ── Comparison pages (PT) ── -->
+  <url>
+    <loc>https://appgrabbit.com/pt/vs/savefrom/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/savefrom/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/savefrom/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/vs/4k-video-downloader/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/4k-video-downloader/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/4k-video-downloader/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/vs/ssyoutube/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/vs/ssyoutube/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/vs/ssyoutube/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ── Blog posts (EN) ── -->
+  <url>
+    <loc>https://appgrabbit.com/blog/how-to-download-youtube-videos-windows-2026/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/blog/how-to-download-youtube-videos-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/blog/como-descargar-videos-youtube-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/blog/como-baixar-videos-youtube-windows-2026/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/blog/descargar-videos-youtube-pc/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ── Blog posts (ES) ── -->
+  <url>
+    <loc>https://appgrabbit.com/es/blog/como-descargar-videos-youtube-windows-2026/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/blog/how-to-download-youtube-videos-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/blog/como-descargar-videos-youtube-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/blog/como-baixar-videos-youtube-windows-2026/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/blog/descargar-videos-youtube-pc/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ── Blog posts (PT) ── -->
+  <url>
+    <loc>https://appgrabbit.com/pt/blog/como-baixar-videos-youtube-windows-2026/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/blog/how-to-download-youtube-videos-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/blog/como-descargar-videos-youtube-windows-2026/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/blog/como-baixar-videos-youtube-windows-2026/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/blog/baixar-videos-youtube-pc/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ── Legal ── -->
+  <url>
+    <loc>https://appgrabbit.com/privacy/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/terms/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

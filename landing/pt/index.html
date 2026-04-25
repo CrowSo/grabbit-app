@@ -37,8 +37,8 @@
 
   <!-- ── Twitter Card ── -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Grabbit — Download Videos from YouTube, TikTok & More" />
-  <meta name="twitter:description" content="Free Windows app to download videos from 8+ platforms. Chrome Extension included." />
+  <meta name="twitter:title" content="Grabbit — Baixe Vídeos do YouTube, TikTok e Mais" />
+  <meta name="twitter:description" content="App gratuito para Windows. Baixe de 8+ plataformas. Extensão Chrome incluída." />
   <meta name="twitter:image" content="https://appgrabbit.com/og-image.png" />
 
   <!-- ── JSON-LD Structured Data ── -->
@@ -58,8 +58,24 @@
     "url": "https://appgrabbit.com",
     "downloadUrl": "https://github.com/CrowSo/grabbit-app/releases/latest/download/GrabbitSetup.exe",
     "screenshot": "https://appgrabbit.com/og-image.png",
-    "softwareVersion": "1.0.0",
+    "softwareVersion": "1.2.1",
     "author": { "@type": "Person", "name": "Javier Enrique Calixto Hernandez" }
+  }
+  </script>
+
+  <!-- ── FAQPage Structured Data ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "O Grabbit é gratuito?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Grabbit tem um plano gratuito com 2 downloads por dia em qualidade máxima de 720p. O Pro desbloqueia downloads ilimitados e qualidade 4K/8K por $8,99/mês ou $59,99/ano." } },
+      { "@type": "Question", "name": "O Grabbit é seguro?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Grabbit funciona 100% no seu PC. Sem conta, sem nuvem, seus arquivos nunca saem do seu computador. É alimentado pelo yt-dlp, um downloader de código aberto usado por milhões." } },
+      { "@type": "Question", "name": "O Grabbit ainda funciona com o YouTube em 2026?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Grabbit usa o yt-dlp internamente, um projeto de código aberto ativamente mantido que se atualiza continuamente para funcionar com o YouTube e outras plataformas." } },
+      { "@type": "Question", "name": "Quais plataformas o Grabbit suporta?", "acceptedAnswer": { "@type": "Answer", "text": "O Grabbit suporta YouTube, TikTok, Instagram, Facebook, Twitter/X, Pinterest, Twitch, SoundCloud e milhares de outras plataformas via yt-dlp." } },
+      { "@type": "Question", "name": "Posso baixar apenas o áudio como MP3?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. Selecione o modo Apenas áudio antes de baixar e o Grabbit extrairá a faixa de áudio e salvará como um arquivo MP3 de alta qualidade." } },
+      { "@type": "Question", "name": "Como instalo a extensão do Grabbit para Chrome?", "acceptedAnswer": { "@type": "Answer", "text": "Baixe o ZIP em appgrabbit.com, descompacte-o, vá a chrome://extensions no Chrome, ative o Modo desenvolvedor, clique em Carregar sem compactação e selecione a pasta. O botão Grabbit aparecerá nas páginas de vídeo compatíveis." } }
+    ]
   }
   </script>
 
@@ -85,7 +101,7 @@
   </ul>
   <div class="nav-right">
     <div class="lang-switcher">
-      <a href="/" class="active">EN</a>
+      <a href="/">EN</a>
       <a href="/es/">ES</a>
       <a href="/pt/" class="active">PT</a>
     </div>
@@ -217,7 +233,7 @@
     <h3 style="font-family:var(--sora);font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:8px;">Tutorial completo — instalar, baixar, extensão</h3>
     <p style="font-size:0.9rem;color:var(--text2);margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto;">Veja como instalar o Grabbit, configurar a extensão Chrome e baixar seu primeiro vídeo em menos de 6 minutos.</p>
     <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.5);max-width:860px;margin:0 auto;">
-      <iframe src="https://www.youtube.com/embed/odK_NLDwApA" title="Grabbit — Tutorial Completo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:16px;"></iframe>
+      <iframe src="https://www.youtube.com/embed/odK_NLDwApA" title="Grabbit — Tutorial Completo" frameborder="0" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:16px;"></iframe>
     </div>
   </div>
 
@@ -269,7 +285,7 @@
       <div class="pricing-desc">Experimente o Grabbit sem compromisso.</div>
       <div class="pricing-divider"></div>
       <ul class="pricing-feats">
-        <li class="y">5 downloads por dia</li>
+        <li class="y">2 downloads por dia</li>
         <li class="y">Até 720p</li>
         <li class="y">YouTube e TikTok</li>
         <li>Todas as plataformas</li>
@@ -313,6 +329,38 @@
   <p class="pricing-note">Você receberá seu código de licença por e-mail imediatamente após o pagamento.</p>
 </section>
 
+<!-- ── FAQ ── -->
+<section class="faq" id="faq">
+  <div class="section-eyebrow reveal">FAQ</div>
+  <h2 class="section-title reveal">Perguntas frequentes</h2>
+  <div class="faq-grid">
+    <div class="faq-item reveal">
+      <div class="faq-q">O Grabbit é gratuito?</div>
+      <div class="faq-a">Sim. O plano gratuito permite 2 downloads por dia em qualidade máxima de 720p. O Pro desbloqueia downloads ilimitados e qualidade 4K/8K por $8,99/mês.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">O Grabbit é seguro?</div>
+      <div class="faq-a">Completamente. O Grabbit funciona 100% no seu PC — sem conta, sem nuvem. Seus arquivos nunca saem do seu computador. Alimentado pelo yt-dlp, usado por milhões.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Ainda funciona com o YouTube em 2026?</div>
+      <div class="faq-a">Sim. O Grabbit usa o yt-dlp internamente — um projeto de código aberto ativamente mantido que se adapta continuamente às mudanças do YouTube e de outras plataformas.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Quais plataformas o Grabbit suporta?</div>
+      <div class="faq-a">YouTube, TikTok, Instagram, Facebook, Twitter/X, Pinterest, Twitch, SoundCloud e milhares de plataformas via yt-dlp.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Posso baixar apenas o áudio como MP3?</div>
+      <div class="faq-a">Sim. Selecione o modo "Apenas áudio" antes de baixar e o Grabbit extrairá a faixa de áudio e salvará como um arquivo MP3 de alta qualidade.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Como instalo a extensão do Chrome?</div>
+      <div class="faq-a">Baixe o ZIP, descompacte-o, abra o Chrome → chrome://extensions, ative o Modo desenvolvedor, clique em "Carregar sem compactação" e selecione a pasta. Pronto!</div>
+    </div>
+  </div>
+</section>
+
 <!-- ── CTA ── -->
 <section class="cta" id="download">
   <div class="cta-inner reveal">
@@ -328,6 +376,20 @@
         Entrar no Discord
       </a>
     </div>
+  </div>
+</section>
+
+<!-- ── NEWSLETTER ── -->
+<section class="newsletter">
+  <div class="newsletter-inner reveal">
+    <h3>Fique por dentro</h3>
+    <p>Receba notificações sobre novos recursos e atualizações.</p>
+    <form name="newsletter-pt" method="POST" netlify netlify-honeypot="bot-field" class="newsletter-form">
+      <input type="hidden" name="form-name" value="newsletter-pt" />
+      <p style="display:none;"><label>Não preencha isso: <input name="bot-field" /></label></p>
+      <input type="email" name="email" placeholder="seu@email.com" required />
+      <button type="submit">Inscrever-se</button>
+    </form>
   </div>
 </section>
 

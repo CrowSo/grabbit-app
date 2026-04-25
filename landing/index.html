@@ -58,8 +58,34 @@
     "url": "https://appgrabbit.com",
     "downloadUrl": "https://github.com/CrowSo/grabbit-app/releases/latest/download/GrabbitSetup.exe",
     "screenshot": "https://appgrabbit.com/og-image.png",
-    "softwareVersion": "1.0.0",
+    "softwareVersion": "1.2.1",
     "author": { "@type": "Person", "name": "Javier Enrique Calixto Hernandez" }
+  }
+  </script>
+
+  <!-- ── Auto language redirect ── -->
+  <script>
+    (function() {
+      if (sessionStorage.getItem('lang-chosen')) return;
+      var lang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+      if (lang.startsWith('es')) { sessionStorage.setItem('lang-chosen','1'); location.replace('/es/'); }
+      else if (lang.startsWith('pt')) { sessionStorage.setItem('lang-chosen','1'); location.replace('/pt/'); }
+    })();
+  </script>
+
+  <!-- ── FAQPage Structured Data ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Is Grabbit free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Grabbit has a free plan with 2 downloads per day at up to 720p quality. Pro unlocks unlimited downloads and 4K/8K quality for $8.99/month or $59.99/year." } },
+      { "@type": "Question", "name": "Is Grabbit safe to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Grabbit runs 100% on your PC. No account needed, no cloud storage, your files never leave your computer. It is powered by yt-dlp, an open-source downloader trusted by millions." } },
+      { "@type": "Question", "name": "Does Grabbit still work with YouTube in 2026?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Grabbit uses yt-dlp under the hood, an actively maintained open-source project that keeps up with YouTube and other platform changes." } },
+      { "@type": "Question", "name": "What platforms does Grabbit support?", "acceptedAnswer": { "@type": "Answer", "text": "Grabbit supports YouTube, TikTok, Instagram, Facebook, Twitter/X, Pinterest, Twitch, SoundCloud and thousands of other platforms via yt-dlp." } },
+      { "@type": "Question", "name": "Can I download audio only as MP3?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Select the Audio only mode before downloading and Grabbit will extract the audio track and save it as a high-quality MP3 file." } },
+      { "@type": "Question", "name": "How do I install the Grabbit Chrome Extension?", "acceptedAnswer": { "@type": "Answer", "text": "Download the extension ZIP from appgrabbit.com, unzip it, go to chrome://extensions in Chrome, enable Developer mode, click Load unpacked and select the folder. The Grabbit button will appear on supported video pages." } }
+    ]
   }
   </script>
 
@@ -222,6 +248,7 @@
         src="https://www.youtube.com/embed/odK_NLDwApA"
         title="Grabbit — Full Tutorial"
         frameborder="0"
+        loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen
         style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:16px;">
@@ -279,7 +306,7 @@
       <div class="pricing-desc">Try Grabbit with no commitment.</div>
       <div class="pricing-divider"></div>
       <ul class="pricing-feats">
-        <li class="y">5 downloads per day</li>
+        <li class="y">2 downloads per day</li>
         <li class="y">Up to 720p</li>
         <li class="y">YouTube and TikTok</li>
         <li>All platforms</li>
@@ -323,6 +350,38 @@
   <p class="pricing-note">You'll receive your license code by email immediately after payment.</p>
 </section>
 
+<!-- ── FAQ ── -->
+<section class="faq" id="faq">
+  <div class="section-eyebrow reveal">FAQ</div>
+  <h2 class="section-title reveal">Frequently asked questions</h2>
+  <div class="faq-grid">
+    <div class="faq-item reveal">
+      <div class="faq-q">Is Grabbit free?</div>
+      <div class="faq-a">Yes. The free plan allows 2 downloads per day at up to 720p. Pro unlocks unlimited downloads and 4K/8K quality for $8.99/month.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Is Grabbit safe to use?</div>
+      <div class="faq-a">Completely. Grabbit runs 100% on your PC — no account needed, no cloud. Your files never leave your computer. Powered by yt-dlp, trusted by millions.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Does it still work with YouTube in 2026?</div>
+      <div class="faq-a">Yes. Grabbit uses yt-dlp under the hood — an actively maintained open-source project that keeps up with YouTube and platform changes.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">What platforms does Grabbit support?</div>
+      <div class="faq-a">YouTube, TikTok, Instagram, Facebook, Twitter/X, Pinterest, Twitch, SoundCloud and thousands more via yt-dlp.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">Can I download audio only as MP3?</div>
+      <div class="faq-a">Yes. Select "Audio only" mode before downloading and Grabbit will extract and save the audio track as a high-quality MP3 file.</div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q">How do I install the Chrome Extension?</div>
+      <div class="faq-a">Download the ZIP, unzip it, open Chrome → chrome://extensions, enable Developer mode, click "Load unpacked" and select the folder. Done — the Grab button appears on supported pages.</div>
+    </div>
+  </div>
+</section>
+
 <!-- ── CTA ── -->
 <section class="cta" id="download">
   <div class="cta-inner reveal">
@@ -338,6 +397,20 @@
         Join Discord
       </a>
     </div>
+  </div>
+</section>
+
+<!-- ── NEWSLETTER ── -->
+<section class="newsletter">
+  <div class="newsletter-inner reveal">
+    <h3>Stay in the loop</h3>
+    <p>Get notified about new features and platform updates.</p>
+    <form name="newsletter" method="POST" netlify netlify-honeypot="bot-field" class="newsletter-form">
+      <input type="hidden" name="form-name" value="newsletter" />
+      <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
+      <input type="email" name="email" placeholder="your@email.com" required />
+      <button type="submit">Subscribe</button>
+    </form>
   </div>
 </section>
 

@@ -245,8 +245,32 @@ footer { padding: 36px 64px; border-top: 1px solid var(--border); display: flex;
   .pricing { padding: 56px 24px; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 380px; }
   .cta { padding: 56px 24px; }
+  .faq { padding: 56px 24px; }
+  .faq-grid { grid-template-columns: 1fr; }
+  .newsletter { padding: 48px 24px; }
+  .newsletter-form { flex-direction: column; }
   footer { padding: 28px 24px; flex-direction: column; text-align: center; }
 }
+
+/* ── FAQ ── */
+.faq { padding: 72px 64px; max-width: 960px; margin: 0 auto; }
+.faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 44px; }
+.faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; transition: border-color 0.2s; }
+.faq-item:hover { border-color: rgba(56,189,248,0.25); }
+.faq-q { font-family: var(--sora); font-size: 0.93rem; font-weight: 700; color: var(--text); margin-bottom: 9px; }
+.faq-a { font-size: 0.85rem; color: var(--text2); line-height: 1.65; }
+
+/* ── Newsletter ── */
+.newsletter { padding: 56px 64px; text-align: center; border-top: 1px solid var(--border); }
+.newsletter-inner { max-width: 480px; margin: 0 auto; }
+.newsletter-inner h3 { font-family: var(--sora); font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; }
+.newsletter-inner p { font-size: 0.9rem; color: var(--text2); margin-bottom: 22px; }
+.newsletter-form { display: flex; gap: 10px; }
+.newsletter-form input[type="email"] { flex: 1; background: var(--card); border: 1px solid var(--border2); border-radius: 99px; padding: 11px 18px; color: var(--text); font-family: var(--font); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.newsletter-form input[type="email"]:focus { border-color: var(--accent); }
+.newsletter-form input[type="email"]::placeholder { color: var(--text3); }
+.newsletter-form button { background: var(--accent); color: #fff; border: none; border-radius: 99px; padding: 11px 22px; font-size: 0.86rem; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.2s; white-space: nowrap; }
+.newsletter-form button:hover { background: var(--accent-h); transform: translateY(-1px); }
 
 /* ── Prose (terms/privacy) ── */
 .prose-page { max-width: 760px; margin: 0 auto; padding: 120px 32px 80px; }
