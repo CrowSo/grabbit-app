@@ -1,46 +1,42 @@
-/* ============================================================
-   GRABBIT — theme-forest.css
-   Deep forest greens, moss, amber accents
-   ============================================================ */
+/* GRABBIT — theme-forest.css | Deep forest greens, moss, amber accents */
 
 [data-theme="forest"] {
-  --bg-base: #060e08;
-  --bg-subtle: #0c1810;
-  --card-bg: #101f13;
-  --input-bg: #0c1810;
+  --primary:   #060e08;
+  --secondary: #d8f0c8;
+  --white:     #ffffff;
+  --gray:      #6a9060;
+  --red:       #ff6b6b;
+  --green:     #7dba52;
+  --blue:      #52a8ba;
 
-  --sidebar-bg: linear-gradient(175deg, #040a05 0%, #081208 60%, #0a180b 100%);
-  --sidebar-text: rgba(255, 255, 255, 0.9);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.3);
-  --sidebar-muted: rgba(255, 255, 255, 0.15);
-  --sidebar-hover: rgba(134, 200, 100, 0.07);
-  --sidebar-active-bg: rgba(134, 200, 100, 0.1);
-  --sidebar-glow: rgba(80, 160, 60, 0.2);
+  --button:          #0c1810;
+  --button-hover:    #101f13;
+  --button-press:    #142516;
+  --button-active-hover: #d8f0c8;
+  --button-hover-transparent: rgba(125,186,82,0.07);
+  --button-press-transparent: rgba(125,186,82,0.12);
+  --button-stroke:   rgba(125,186,82,0.1);
+  --button-text:     #d8f0c8;
+  --button-box-shadow: 0 0 0 1px rgba(125,186,82,0.1) inset;
+
+  --button-elevated:        #101f13;
+  --button-elevated-hover:  #142516;
+  --button-elevated-press:  #182c1a;
+  --button-elevated-shimmer:#2a4a20;
+
+  --popup-bg:     #0c1810;
+  --popup-stroke: rgba(125,186,82,0.15);
+
+  --sidebar-bg:     linear-gradient(175deg, #040a05 0%, #081208 60%, #0a180b 100%);
+  --sidebar-stroke: rgba(125,186,82,0.08);
+
+  --input-border: rgba(125,186,82,0.25);
+  --orange: #f59e0b;
 
   --accent: #7dba52;
-  --accent-hover: #6aa843;
-  --accent-light: #b8e68a;
-  --accent-subtle: rgba(125, 186, 82, 0.1);
-  --accent-glow: rgba(125, 186, 82, 0.2);
-
-  --text-primary: #d8f0c8;
-  --text-secondary: #6a9060;
-  --text-muted: #3a5530;
-
-  --border: rgba(125, 186, 82, 0.08);
-  --border-hover: rgba(125, 186, 82, 0.22);
-
-  --btn-ghost-bg: rgba(255, 255, 255, 0.04);
-  --btn-ghost-hover: rgba(255, 255, 255, 0.08);
-  --chip-bg: rgba(255, 255, 255, 0.04);
-  --badge-bg: rgba(125, 186, 82, 0.06);
-  --progress-track: rgba(125, 186, 82, 0.1);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="forest"] .progress-bar-fill {
-  box-shadow: 0 0 10px rgba(125, 186, 82, 0.5);
+  background: linear-gradient(90deg, #7dba52, #b8e68a);
+  box-shadow: 0 0 10px rgba(125,186,82,0.5);
 }

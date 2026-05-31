@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    GRABBIT — license.js
    License activation, display, and management via Supabase
    ============================================================ */
@@ -20,10 +20,130 @@ licenseInput?.addEventListener('input', () => {
   licenseInput.value = parts.join('-');
 });
 
-// ── Load saved license on start ────────────────────────────
+// ── Load saved license on start; if none, check trial ──────
 const savedCode = localStorage.getItem('grabbit-license');
 if (savedCode) {
   verifyAndDisplay(savedCode, false);
+} else {
+  checkTrialStatus();
+}
+
+// ── Trial: check status on startup ────────────────────────
+async function checkTrialStatus() {
+  try {
+    const res  = await fetch('/api/trial/status');
+    const data = await res.json();
+    if (data.active) {
+      setTrialActive(data);
+    } else if (data.expired) {
+      setTrialExpired();
+    }
+    // no trial at all → show trial-start-section (default state)
+  } catch {
+    // server unreachable — keep default UI
+  }
+}
+
+// ── Trial: start ───────────────────────────────────────────
+document.getElementById('trial-start-btn')?.addEventListener('click', async () => {
+  const email = document.getElementById('trial-email-input')?.value.trim();
+  if (!email) return;
+  const btn = document.getElementById('trial-start-btn');
+  btn.disabled    = true;
+  btn.textContent = 'Starting...';
+
+  try {
+    const res  = await fetch('/api/trial/start', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email }),
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      setTrialActive({ hours_left: 72, trial_end: data.trial_end, active: true });
+      showTrialMsg('Trial activated! You have full Pro access for 3 days.', 'success');
+    } else {
+      const msgs = {
+        already_used_machine: 'This device already used a trial.',
+        already_used_email:   'This email already used a trial.',
+        invalid_email:        'Enter a valid email address.',
+        server_error:         'Could not reach server. Try again.',
+      };
+      showTrialMsg(msgs[data.error] || 'Could not start trial. Try again.', 'error');
+      btn.disabled    = false;
+      btn.textContent = 'Start free trial';
+    }
+  } catch {
+    showTrialMsg('Could not reach server. Check your connection.', 'error');
+    btn.disabled    = false;
+    btn.textContent = 'Start free trial';
+  }
+});
+
+// ── Trial: show active state ───────────────────────────────
+function setTrialActive(data) {
+  if (data.trial_end) localStorage.setItem('grabbit-trial-end', data.trial_end);
+  const hours = data.hours_left ?? 72;
+  const pct   = Math.max(4, Math.min(100, (hours / 72) * 100));
+
+  document.getElementById('trial-active-card').style.display    = 'block';
+  document.getElementById('activate-card').style.display        = 'block'; // keep visible so user can enter license code
+  document.getElementById('trial-start-section').style.display  = 'none'; // hide the "start trial" email form only
+  document.getElementById('license-details-card').style.display = 'none';
+
+  document.getElementById('trial-hours-left').textContent = hours;
+  document.getElementById('trial-bar').style.width        = `${pct}%`;
+  document.getElementById('trial-bar').style.background   = hours <= 12 ? 'var(--red)' : hours <= 24 ? 'var(--orange, #f59e0b)' : 'var(--green)';
+
+  document.getElementById('license-status').className         = 'license-status active';
+  document.getElementById('license-icon').className           = 'license-icon active';
+  document.getElementById('license-status-title').textContent = 'Free trial — Active';
+  document.getElementById('license-status-sub').textContent   = `${hours} hours of Pro access remaining`;
+  document.getElementById('license-days-wrap').style.display  = 'none';
+
+  licensePill.className   = 'status-pill done';
+  licensePill.textContent = 'Trial';
+
+  document.querySelectorAll('.get-pro-btn').forEach(btn => {
+    btn.textContent        = 'Upgrade to Pro →';
+    btn.style.opacity      = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.style.cursor       = 'pointer';
+  });
+
+  if (window.syncDailyCounter) syncDailyCounter();
+}
+
+// ── Trial: show expired state ──────────────────────────────
+function setTrialExpired() {
+  document.getElementById('trial-start-section').style.display  = 'none';
+  document.getElementById('trial-expired-section').style.display = 'block';
+  document.getElementById('activate-card').style.display         = 'block';
+  document.getElementById('trial-active-card').style.display     = 'none';
+
+  document.getElementById('license-status').className         = 'license-status inactive';
+  document.getElementById('license-icon').className           = 'license-icon inactive';
+  document.getElementById('license-status-title').textContent = 'Trial ended';
+  document.getElementById('license-status-sub').textContent   = 'Upgrade to Pro to restore all features';
+  document.getElementById('license-days-wrap').style.display  = 'none';
+
+  licensePill.className   = 'status-pill error';
+  licensePill.textContent = 'Trial ended';
+}
+
+// ── Trial upgrade button ───────────────────────────────────
+document.getElementById('trial-upgrade-btn')?.addEventListener('click', () => {
+  window.open(LANDING_URL, '_blank');
+});
+
+function showTrialMsg(msg, type) {
+  const el = document.getElementById('trial-msg');
+  if (!el) return;
+  el.textContent   = msg;
+  el.style.display = 'block';
+  el.style.color   = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--gray)';
+  setTimeout(() => { el.style.display = 'none'; }, 6000);
 }
 
 // ── Activate button ────────────────────────────────────────
@@ -90,16 +210,19 @@ function setLicenseActive(code, data, showMsg) {
   document.getElementById('license-days-num').textContent     = days;
 
   const daysEl = document.getElementById('license-days-num');
-  daysEl.style.color = days <= 5 ? '#ef4444' : days <= 10 ? '#f59e0b' : '#22c55e';
+  daysEl.style.color = days <= 5 ? 'var(--red)' : days <= 10 ? 'var(--orange, #f59e0b)' : 'var(--green)';
 
   document.getElementById('license-details-card').style.display = 'block';
   document.getElementById('activate-card').style.display        = 'none';
+  document.getElementById('trial-active-card').style.display    = 'none';
 
   document.getElementById('lic-email').textContent   = data.email   || '—';
-  document.getElementById('lic-code').textContent    = code;
+  _licCodeReal    = code;
+  _licCodeVisible = false;
+  document.getElementById('lic-code').textContent    = '••••-••••-••••-••••';
   document.getElementById('lic-plan').textContent    = (data.plan   || 'pro').toUpperCase();
   document.getElementById('lic-days').textContent    = `${days} days`;
-  document.getElementById('lic-days').style.color    = days <= 5 ? '#ef4444' : days <= 10 ? '#f59e0b' : '#22c55e';
+  document.getElementById('lic-days').style.color    = days <= 5 ? 'var(--red)' : days <= 10 ? 'var(--orange, #f59e0b)' : 'var(--green)';
   document.getElementById('lic-created').textContent = data.created_at
     ? new Date(data.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
     : '—';
@@ -109,7 +232,7 @@ function setLicenseActive(code, data, showMsg) {
 
   const pct = Math.max(0, Math.min(100, (days / 30) * 100));
   document.getElementById('lic-bar').style.width       = `${pct}%`;
-  document.getElementById('lic-bar').style.background  = days <= 5 ? '#ef4444' : days <= 10 ? '#f59e0b' : 'var(--accent)';
+  document.getElementById('lic-bar').style.background  = days <= 5 ? 'var(--red)' : days <= 10 ? 'var(--orange, #f59e0b)' : 'var(--secondary)';
   document.getElementById('lic-bar-label').textContent = `${days} of 30 days`;
 
   licensePill.className   = 'status-pill done';
@@ -126,8 +249,8 @@ function setLicenseActive(code, data, showMsg) {
   // Warn if renewal is close
   const renewBtn = document.getElementById('renew-btn');
   if (renewBtn && days <= 7) {
-    renewBtn.style.background  = 'rgba(245,158,11,0.12)';
-    renewBtn.style.color       = '#f59e0b';
+    renewBtn.style.background  = 'var(--button-elevated)';
+    renewBtn.style.color       = 'var(--orange, #f59e0b)';
     renewBtn.style.border      = '1px solid rgba(245,158,11,0.3)';
     renewBtn.textContent       = `⚠ ${days} days left — Renew now`;
   }
@@ -169,9 +292,29 @@ document.getElementById('deactivate-btn')?.addEventListener('click', () => {
   );
 });
 
-// ── Renew → open landing page ──────────────────────────────
+// ── License code show/hide ────────────────────────────────
+let _licCodeReal = '';
+let _licCodeVisible = false;
+
+window.toggleLicCode = function() {
+  _licCodeVisible = !_licCodeVisible;
+  const el   = document.getElementById('lic-code');
+  const icon = document.getElementById('lic-eye-icon');
+  if (!el) return;
+
+  if (_licCodeVisible) {
+    el.textContent = _licCodeReal || '—';
+    icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  } else {
+    el.textContent = '••••-••••-••••-••••';
+    icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  }
+};
+
+// ── Renew → open Stripe checkout ──────────────────────────
+const STRIPE_MONTHLY_URL = 'https://buy.stripe.com/bJe5kF55Bgmi92O5fm0x201';
 document.getElementById('renew-btn')?.addEventListener('click', () => {
-  window.open(LANDING_URL + '/renew', '_blank');
+  window.open(STRIPE_MONTHLY_URL, '_blank');
 });
 
 // ── Get Pro → open landing page ────────────────────────────
@@ -184,6 +327,8 @@ function showMessage(msg, type) {
   if (!activateMsg) return;
   activateMsg.textContent  = msg;
   activateMsg.style.display = 'block';
-  activateMsg.style.color   = type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : 'var(--text-muted)';
+  activateMsg.style.color   = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--gray)';
   setTimeout(() => { activateMsg.style.display = 'none'; }, 6000);
 }
+
+

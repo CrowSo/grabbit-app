@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grabbit — Error Log (dev)</title>
+  <link rel="icon" type="image/x-icon" href="/static/icons/favicon.ico" />
+  <link rel="stylesheet" href="/static/css/theme-light.css" />
+  <link rel="stylesheet" href="/static/css/theme-dark.css" />
+  <link rel="stylesheet" href="/static/css/main.css" />
+  <style>
+    body { overflow: auto; padding: 24px; }
+    .errors-wrap { max-width: 1100px; margin: 0 auto; }
+    .errors-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .errors-header h1 {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--secondary); letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .err-entry {
+      background: var(--button-elevated);
+      border-radius: var(--border-radius);
+      padding: 0; overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .err-head {
+      background: rgba(0,0,0,0.06);
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; font-size: 0.78rem;
+    }
+    .err-head .err-platform {
+      font-weight: 700; color: var(--red);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .err-head .err-ts { color: var(--gray); font-size: 0.72rem; }
+    .err-body { padding: 14px 16px; }
+    .err-url {
+      font-family: monospace; font-size: 0.78rem;
+      color: var(--secondary); word-break: break-all;
+      padding: 6px 10px; background: var(--button);
+      border-radius: 6px; display: inline-block;
+      margin-bottom: 12px;
+    }
+    .err-meta {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      font-size: 0.72rem; color: var(--gray);
+      margin-bottom: 12px;
+    }
+    .err-meta span strong { color: var(--secondary); }
+    .err-attempt {
+      background: var(--button); border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 6px;
+      font-family: monospace; font-size: 0.72rem;
+    }
+    .err-attempt-head {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 6px; font-weight: 700;
+    }
+    .err-attempt-head .att-num {
+      background: var(--secondary); color: var(--primary);
+      padding: 2px 8px; border-radius: 99px; font-size: 0.68rem;
+    }
+    .err-cmd, .err-stderr {
+      background: rgba(0,0,0,0.15); padding: 8px 10px;
+      border-radius: 4px; white-space: pre-wrap; word-break: break-word;
+      color: var(--secondary); margin-top: 4px;
+    }
+    .err-cmd { font-size: 0.7rem; }
+    .err-stderr { color: var(--red); font-size: 0.72rem; }
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--gray); border: 2px dashed var(--button-stroke);
+      border-radius: var(--border-radius);
+    }
+    .filter-btn.active {
+      background: var(--secondary) !important;
+      color: var(--primary) !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="errors-wrap">
+    <div class="errors-header">
+      <h1>Error Log (dev) · <span id="count" style="color:var(--gray);font-weight:500;">0</span></h1>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="loadLog()">Refresh</button>
+        <button class="btn btn-danger btn-sm" onclick="clearLog()">Clear all</button>
+        <a class="btn btn-ghost btn-sm" href="/">Back to app</a>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button class="btn btn-ghost btn-sm filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+      <button class="btn btn-ghost btn-sm filter-btn" data-filter="external" onclick="setFilter('external')" style="color:var(--orange,#f59e0b);">External (engine)</button>
+      <button class="btn btn-ghost btn-sm filter-btn" data-filter="internal" onclick="setFilter('internal')" style="color:var(--secondary);">Internal (our code)</button>
+    </div>
+
+    <div id="errors-list"></div>
+  </div>
+
+<script>
+// Codes that mean "platform changed, engine needs update" — external problem
+const EXTERNAL_CODES = new Set(['extractor_broken']);
+let _currentFilter = 'all';
+let _allEntries = [];
+
+window.setFilter = function(f) {
+  _currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === f);
+  });
+  renderEntries();
+};
+
+function isExternal(e) {
+  return EXTERNAL_CODES.has(e.final_code);
+}
+
+function renderEntries() {
+  const list = document.getElementById('errors-list');
+  let entries = _allEntries;
+  if (_currentFilter === 'external') entries = entries.filter(isExternal);
+  if (_currentFilter === 'internal') entries = entries.filter(e => !isExternal(e));
+
+  document.getElementById('count').textContent =
+    `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state">No errors in this category.</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(e => `
+      <div class="err-entry">
+        <div class="err-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="err-platform">${e.platform || 'unknown'}</span>
+            <span style="color:var(--secondary);font-weight:600;">${e.final_code || '—'}</span>
+            <span style="color:var(--gray);">(${e.final_i18n_key || '—'})</span>
+            <span style="font-size:0.66rem;padding:2px 7px;border-radius:99px;${isExternal(e) ? 'background:rgba(245,158,11,0.15);color:var(--orange,#f59e0b);' : 'background:var(--button);color:var(--gray);'}">${isExternal(e) ? 'EXTERNAL' : 'INTERNAL'}</span>
+          </div>
+          <span class="err-ts">${formatTs(e.timestamp)}</span>
+        </div>
+        <div class="err-body">
+          <div class="err-url">${escapeHtml(e.url || '')}</div>
+          <div class="err-meta">
+            <span><strong>Format:</strong> ${e.format || '—'}</span>
+            <span><strong>Quality:</strong> ${e.quality || '—'}</span>
+            <span><strong>Attempts:</strong> ${(e.attempts || []).length}</span>
+            <span><strong>Item ID:</strong> ${e.item_id || '—'}</span>
+          </div>
+          ${(e.attempts || []).map(a => `
+            <div class="err-attempt">
+              <div class="err-attempt-head">
+                <span class="att-num">#${a.attempt}</span>
+                <span>Strategy ${a.strategy}</span>
+                <span style="color:var(--gray);">Returncode: ${a.returncode}</span>
+                <span style="color:var(--red);">→ ${a.classified_as}</span>
+              </div>
+              <div style="color:var(--gray);font-size:0.66rem;margin-bottom:2px;">COMMAND</div>
+              <div class="err-cmd">${escapeHtml((a.cmd || []).join(' '))}</div>
+              <div style="color:var(--gray);font-size:0.66rem;margin-top:8px;margin-bottom:2px;">STDERR</div>
+              <div class="err-stderr">${escapeHtml((a.stderr || []).join('\n')) || '<em>(empty)</em>'}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+}
+
+async function loadLog() {
+  try {
+    const res  = await fetch('/api/errors/log');
+    _allEntries = await res.json();
+    renderEntries();
+  } catch (err) {
+    document.getElementById('errors-list').innerHTML = `<div class="empty-state" style="color:var(--red);">Failed to load: ${err.message}</div>`;
+  }
+}
+
+async function clearLog() {
+  if (!confirm('Clear all error logs?')) return;
+  await fetch('/api/errors/clear', { method: 'POST' });
+  loadLog();
+}
+
+function formatTs(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString();
+  } catch { return iso; }
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadLog();
+</script>
+</body>
+</html>

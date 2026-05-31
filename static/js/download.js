@@ -77,6 +77,28 @@ async function fetchInfo() {
   const url = urlInput.value.trim();
   if (!url) return;
 
+  // Block Pinterest share short links
+  if (/pin\.it\//.test(url)) {
+    if (window.showToast) {
+      showToast(
+        typeof t === 'function' ? t('toast_pin_it_blocked') : 'Pinterest short links are blocked. Open the pin in your browser and paste the full URL.',
+        'error',
+        5500
+      );
+    }
+    // Clear input so user can paste the long URL right away
+    urlInput.value = '';
+    showPlatformBadge(null);
+    // Show tip in single mode too — fade out after 8s
+    const tipEl = document.getElementById('pinterest-tip-single');
+    if (tipEl) {
+      tipEl.style.display = 'block';
+      clearTimeout(window._pinTipSingleTimeout);
+      window._pinTipSingleTimeout = setTimeout(() => { tipEl.style.display = 'none'; }, 8000);
+    }
+    return;
+  }
+
   fetchBtn.disabled = true;
   fetchBtn.innerHTML = `
     <svg style="animation:spin 0.8s linear infinite;width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -99,6 +121,9 @@ async function fetchInfo() {
     currentInfo = { ...data, url };
     showPreview(data);
     showOptions();
+    // Clear the input so the user can paste the next link immediately
+    urlInput.value = '';
+    showPlatformBadge(null);
 
   } catch (err) {
     showError(err.message || 'Could not fetch video info. Check the URL.');
@@ -162,7 +187,8 @@ urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchInfo()
 
 // ── Download limits — server is authoritative ──────────────
 const FREE_DAILY_LIMIT  = 2;
-const PRO_MULTI_LIMIT   = 4;
+const PRO_MULTI_LIMIT   = 50;  // Pro can batch up to 50 links
+const BATCH_FETCH_SIZE  = 3;   // fetch info 3 at a time to avoid overloading yt-dlp
 
 function isPro() {
   return !!localStorage.getItem('grabbit-license');
@@ -180,7 +206,8 @@ async function syncDailyCounter() {
     if (pill) {
       if (data.is_pro) {
         pill.className   = 'status-pill done';
-        pill.textContent = 'Pro';
+        const haslicense = !!localStorage.getItem('grabbit-license');
+        pill.textContent = haslicense ? 'Pro' : 'Trial';
       } else {
         pill.className   = 'status-pill waiting';
         pill.textContent = 'Free';
@@ -195,14 +222,13 @@ function updateDailyCounterUI(remaining, limit, pro) {
   const el = document.getElementById('daily-counter');
   if (!el) return;
   if (pro) {
-    el.style.display = 'inline';
-    el.textContent   = 'Pro — Unlimited';
-    el.style.color   = '#22c55e';
+    // Pro or Trial: hide the counter entirely
+    el.style.display = 'none';
     return;
   }
   el.style.display = 'inline';
   el.textContent   = `${remaining}/${limit} downloads left today`;
-  el.style.color   = remaining <= 1 ? '#ef4444' : 'var(--text-muted)';
+  el.style.color   = remaining <= 1 ? '#ef4444' : 'var(--gray)';
 }
 
 async function checkDailyLimit(count = 1) {
@@ -225,47 +251,25 @@ function showLimitToast(msg) {
   setTimeout(() => navigateTo('license'), 1500);
 }
 
-// ── Multi-link detection ───────────────────────────────────
-urlInput.addEventListener('paste', (e) => {
+function extractUrls(text) {
+  const raw = text.split(/[\s,;|\n]+/g)
+    .map(s => s.trim())
+    .filter(s => s.startsWith('http'));
+  return raw.filter(u => u.length > 10);
+}
+
+// ── Single mode: auto-redirect to batch if user pastes multiple ──
+urlInput.addEventListener('paste', () => {
   setTimeout(() => {
-    const text = urlInput.value.trim();
-    const urls = extractUrls(text);
+    const urls = extractUrls(urlInput.value);
     if (urls.length > 1) {
-      handleMultiDetected(urls);
+      // Switch to batch mode and add all
+      setDownloadMode('batch');
+      urls.forEach(u => stagingAdd(u));
+      urlInput.value = '';
     }
   }, 10);
 });
-
-urlInput.addEventListener('input', () => {
-  const text = urlInput.value.trim();
-  const urls = extractUrls(text);
-  if (urls.length > 1) {
-    handleMultiDetected(urls);
-  }
-});
-
-function handleMultiDetected(urls) {
-  if (!isPro()) {
-    // Free — block multi-link entirely
-    urlInput.value = urls[0] || '';
-    if (window.showToast) showToast('Multi-link is a Pro feature. Add links one at a time on the Free plan.', 'error', 5000);
-    return;
-  }
-
-  // Pro — cap at 4
-  const capped = urls.slice(0, PRO_MULTI_LIMIT);
-  if (urls.length > PRO_MULTI_LIMIT) {
-    if (window.showToast) showToast(`Pro plan supports up to ${PRO_MULTI_LIMIT} links at once. ${urls.length - PRO_MULTI_LIMIT} link${urls.length - PRO_MULTI_LIMIT > 1 ? 's were' : ' was'} removed.`, 'info', 5000);
-  }
-  showMultiLink(capped);
-}
-
-function extractUrls(text) {
-  const raw = text.split(/(?=https?:\/\/)/g)
-    .map(s => s.trim())
-    .filter(s => s.startsWith('http'));
-  return raw.map(u => u.replace(/[\s,;|]+$/, '')).filter(u => u.length > 10);
-}
 
 // ── Segment toggle ─────────────────────────────────────────
 document.getElementById('segment-toggle')?.addEventListener('change', function() {
@@ -277,87 +281,266 @@ document.getElementById('segment-toggle')?.addEventListener('change', function()
   }
 });
 
-// Hide segment option when multi-link is shown
-function showMultiLink(urls) {
-  const area = document.getElementById('multi-link-area');
-  const ta   = document.getElementById('multi-url-input');
-  area.style.display = 'block';
-  ta.value = urls.join('\n');
-  updateMultiCount();
-  urlInput.value = '';
-  document.getElementById('platform-row').style.display = 'none';
-  // Hide segment section for multi-link
-  const seg = document.getElementById('segment-section');
-  if (seg) seg.style.display = 'none';
-}
+// ── BATCH MODE ─────────────────────────────────────────────
+const stagingList = [];
+let batchSelectedFormat  = 'video+audio';
+let batchSelectedQuality = 'best';
 
-function updateMultiCount() {
-  const ta   = document.getElementById('multi-url-input');
-  let urls   = extractUrls(ta.value);
+window.setDownloadMode = function(mode) {
+  const singleEl = document.getElementById('single-mode');
+  const batchEl  = document.getElementById('batch-mode');
+  const transEl  = document.getElementById('transcript-mode');
+  
+  const singleBtn = document.getElementById('mode-single-btn');
+  const batchBtn  = document.getElementById('mode-batch-btn');
+  const transBtn  = document.getElementById('mode-transcript-btn');
+  const hero      = document.querySelector('.download-hero');
 
-  // Enforce cap silently in textarea too
-  if (isPro() && urls.length > PRO_MULTI_LIMIT) {
-    urls = urls.slice(0, PRO_MULTI_LIMIT);
-    ta.value = urls.join('\n');
+  // Reset all
+  if (singleEl) singleEl.style.display = 'none';
+  if (batchEl)  batchEl.style.display  = 'none';
+  if (transEl)  transEl.style.display  = 'none';
+  if (singleBtn) singleBtn.classList.remove('active');
+  if (batchBtn)  batchBtn.classList.remove('active');
+  if (transBtn)  transBtn.classList.remove('active');
+  if (hero) hero.classList.remove('batch-active', 'transcript-active');
+
+  if (mode === 'batch') {
+    if (batchEl) batchEl.style.display = 'block';
+    if (batchBtn) batchBtn.classList.add('active');
+    if (hero) hero.classList.add('batch-active');
+  } else if (mode === 'transcript') {
+    if (transEl) transEl.style.display = 'block';
+    if (transBtn) transBtn.classList.add('active');
+    if (hero) hero.classList.add('transcript-active');
+  } else {
+    if (singleEl) singleEl.style.display = 'block';
+    if (singleBtn) singleBtn.classList.add('active');
+  }
+};
+
+function stagingAdd(url) {
+  url = url.trim();
+  if (!url || !url.startsWith('http')) return false;
+
+  // Block Pinterest share short links — they're systematically bot-detected
+  if (/pin\.it\//.test(url)) {
+    if (window.showToast) {
+      showToast(
+        typeof t === 'function' ? t('toast_pin_it_blocked') : 'Pinterest short links are blocked. Open the pin in your browser and paste the full URL.',
+        'error',
+        5500
+      );
+    }
+    // Briefly show the Pinterest tip banner as additional context, then fade out
+    const tipEl = document.getElementById('pinterest-tip');
+    if (tipEl) {
+      tipEl.style.display = 'block';
+      clearTimeout(window._pinTipTimeout);
+      window._pinTipTimeout = setTimeout(() => { tipEl.style.display = 'none'; }, 8000);
+    }
+    return false;
   }
 
-  const countEl = document.getElementById('multi-link-count');
-  if (countEl) {
-    countEl.textContent = `${urls.length} / ${PRO_MULTI_LIMIT} links`;
-    countEl.style.color = urls.length >= PRO_MULTI_LIMIT ? 'var(--accent)' : 'var(--text-muted)';
-  }
-  return urls;
+  if (stagingList.find(s => s.url === url)) return false; // dedupe
+
+  const item = {
+    id: `st_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+    url,
+    platform: detectPlatform(url) || 'other',
+  };
+  stagingList.push(item);
+  renderStagingItem(item);
+  updateStagingCount();
+  return true;
 }
 
-document.getElementById('multi-url-input')?.addEventListener('input', updateMultiCount);
+function renderStagingItem(item) {
+  const list = document.getElementById('batch-staging-list');
+  if (!list) return;
 
-document.getElementById('multi-cancel-btn')?.addEventListener('click', () => {
-  document.getElementById('multi-link-area').style.display = 'none';
-  document.getElementById('multi-url-input').value = '';
-  // Restore segment section
-  const seg = document.getElementById('segment-section');
-  if (seg) seg.style.display = 'block';
+  const el = document.createElement('div');
+  el.className = 'staging-item';
+  el.id = `staging-${item.id}`;
+  const platformName = platformLabels[item.platform] || 'Link';
+
+  el.innerHTML = `
+    <span class="staging-platform">${platformIcons2[item.platform] || '🔗'} ${platformName}</span>
+    <span class="staging-url">${item.url}</span>
+    <button class="staging-remove" onclick="stagingRemove('${item.id}')" title="Remove">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  `;
+  list.appendChild(el);
+}
+
+const platformIcons2 = {
+  youtube:'📺', tiktok:'🎵', instagram:'📸', facebook:'👥',
+  twitter:'🐦', pinterest:'📌', twitch:'🎮', soundcloud:'🔊', other:'🔗',
+};
+
+window.stagingRemove = function(id) {
+  const idx = stagingList.findIndex(s => s.id === id);
+  if (idx !== -1) stagingList.splice(idx, 1);
+  document.getElementById(`staging-${id}`)?.remove();
+  updateStagingCount();
+};
+
+window.batchClearAll = function() {
+  stagingList.length = 0;
+  document.getElementById('batch-staging-list').innerHTML = '';
+  updateStagingCount();
+};
+
+function updateStagingCount() {
+  const countEl   = document.getElementById('batch-count');
+  const optionsEl = document.getElementById('batch-options');
+  const clearBtn  = document.getElementById('batch-clear-all-btn');
+  const dlLabel   = document.getElementById('batch-download-label');
+  const tipEl     = document.getElementById('pinterest-tip');
+  const n = stagingList.length;
+
+  if (n === 0) {
+    countEl.textContent = typeof t === 'function' ? t('batch_empty') : 'No links yet';
+    countEl.style.color = 'var(--gray)';
+    optionsEl.style.display = 'none';
+    clearBtn.style.display  = 'none';
+  } else {
+    const linkWord = n === 1 ? 'link' : 'links';
+    countEl.textContent = `${n} ${linkWord}`;
+    countEl.style.color = 'var(--secondary)';
+    optionsEl.style.display = 'block';
+    clearBtn.style.display  = 'inline-flex';
+    if (dlLabel && typeof t === 'function') {
+      dlLabel.textContent = t('batch_add_all').replace('{n}', n);
+    }
+  }
+
+  // Pinterest tip is now shown only when user tries to paste a pin.it/ short link
+  // (managed inside stagingAdd) — long Pinterest URLs work fine without warning.
+}
+
+// Batch URL input — auto-add on paste/enter
+const batchInput = document.getElementById('batch-url-input');
+batchInput?.addEventListener('paste', () => {
+  setTimeout(() => {
+    const text = batchInput.value;
+    const urls = extractUrls(text);
+    if (urls.length > 0) {
+      urls.forEach(u => stagingAdd(u));
+      batchInput.value = '';
+    }
+  }, 10);
 });
 
-document.getElementById('multi-add-btn')?.addEventListener('click', async () => {
-  const ta         = document.getElementById('multi-url-input');
-  const urls       = extractUrls(ta.value).slice(0, PRO_MULTI_LIMIT);
+batchInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const urls = extractUrls(batchInput.value);
+    urls.forEach(u => stagingAdd(u));
+    batchInput.value = '';
+  }
+});
+
+document.getElementById('batch-add-btn')?.addEventListener('click', () => {
+  const urls = extractUrls(batchInput.value);
+  urls.forEach(u => stagingAdd(u));
+  batchInput.value = '';
+  batchInput.focus();
+});
+
+// Format/quality chips for batch mode
+document.querySelectorAll('#batch-format-chips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#batch-format-chips .chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    batchSelectedFormat = chip.dataset.value;
+  });
+});
+
+document.querySelectorAll('#batch-quality-chips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#batch-quality-chips .chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    batchSelectedQuality = chip.dataset.value;
+  });
+});
+
+// File upload (.txt)
+const fileInput = document.getElementById('batch-file-input');
+document.getElementById('batch-upload-btn')?.addEventListener('click', () => fileInput?.click());
+
+fileInput?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const urls = extractUrls(text);
+  let added = 0;
+  urls.forEach(u => { if (stagingAdd(u)) added++; });
+  if (window.showToast) showToast(`${added} links added from ${file.name}`, 'info');
+  fileInput.value = '';
+});
+
+// Drag & drop
+const dropzone = document.getElementById('batch-dropzone');
+dropzone?.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('drag-over');
+});
+dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone?.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.name.endsWith('.txt')) {
+    if (window.showToast) showToast('Only .txt files are supported', 'error');
+    return;
+  }
+  const text = await file.text();
+  const urls = extractUrls(text);
+  let added = 0;
+  urls.forEach(u => { if (stagingAdd(u)) added++; });
+  if (window.showToast) showToast(`${added} links added from ${file.name}`, 'info');
+});
+
+// Download all button
+document.getElementById('batch-download-btn')?.addEventListener('click', async () => {
+  if (stagingList.length === 0) return;
+  if (!await checkDailyLimit(stagingList.length)) return;
+
   const saveFolder = localStorage.getItem('grabbit-save-folder') || '';
-  const format     = selectedFormat;
-  const quality    = selectedQuality;
+  const format     = batchSelectedFormat;
+  const quality    = batchSelectedQuality;
 
-  if (urls.length === 0) return;
-  if (!await checkDailyLimit(urls.length)) return;
-
-  urls.forEach((url, index) => {
+  // Add all items to queue immediately with placeholder titles
+  const items = stagingList.map(staging => {
     const item = {
       id: `dl_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-      url,
-      title: shortenUrl(url),
+      url:       staging.url,
+      title:     shortenUrl(staging.url),
       thumbnail: '',
-      platform: detectPlatform(url) || 'other',
-      format,
-      quality,
-      startTime: '',
-      endTime: '',
+      platform:  staging.platform,
+      format, quality,
+      startTime: '', endTime: '',
       saveFolder,
-      status: 'waiting',
-      pct: 0,
-      speed: '',
+      status: 'waiting', pct: 0, speed: '',
     };
     window.addToQueue(item);
-    fetchInfoAndUpdate(item, index * 500);
+    return item;
   });
 
-  document.getElementById('multi-link-area').style.display = 'none';
-  ta.value = '';
+  // Clear staging
+  batchClearAll();
   navigateTo('queue');
-  if (window.showToast) showToast(`${urls.length} videos added to queue`, 'info');
+
+  // Fetch info in batches to avoid saturating yt-dlp
+  fetchInfoInBatches(items);
   setTimeout(syncDailyCounter, 1500);
 });
 
-async function fetchInfoAndUpdate(item, delayMs = 0) {
-  if (delayMs > 0) await new Promise(r => setTimeout(r, delayMs));
+async function fetchInfoAndUpdate(item) {
   try {
     const res  = await fetch('/api/info', {
       method: 'POST',
@@ -371,27 +554,64 @@ async function fetchInfoAndUpdate(item, delayMs = 0) {
     item.thumbnail = data.thumbnail || '';
     item.platform  = data.platform  || item.platform;
 
-    // Update title
     const titleEl = document.querySelector(`#queue-item-${item.id} .queue-title`);
     if (titleEl) titleEl.textContent = data.title;
 
-    // Update thumbnail — always has an <img id="thumb-{id}"> now
     if (data.thumbnail) {
       const thumbEl = document.getElementById(`thumb-${item.id}`);
       if (thumbEl) {
-        thumbEl.src   = `/api/thumbnail?url=${encodeURIComponent(data.thumbnail)}`;
+        thumbEl.src = `/api/thumbnail?url=${encodeURIComponent(data.thumbnail)}`;
         thumbEl.style.display = 'block';
       }
     }
 
-    // Update platform badge
     const metaEl = document.querySelector(`#queue-item-${item.id} .queue-meta span:first-child`);
     if (metaEl) {
       const icons = { youtube:'📺', tiktok:'🎵', instagram:'📸', facebook:'👥',
                       twitter:'🐦', pinterest:'📌', twitch:'🎮', soundcloud:'🔊', other:'🔗' };
       metaEl.textContent = `${icons[data.platform]||'🔗'} ${data.platform||'Unknown'}`;
     }
-  } catch { /* ignore */ }
+  } catch { /* ignore — item stays with URL as title */ }
+}
+
+async function fetchInfoInBatches(items) {
+  const total = items.length;
+  let done = 0, failed = 0;
+
+  // Show toast progress
+  const showProgress = () => {
+    const current = done + failed;
+    if (current < total && window.showToast) {
+      showToast(
+        t('batch_fetching').replace('{current}', current + 1).replace('{total}', total),
+        'info', 2000
+      );
+    }
+  };
+
+  // Process in batches of BATCH_FETCH_SIZE
+  for (let i = 0; i < items.length; i += BATCH_FETCH_SIZE) {
+    const batch = items.slice(i, i + BATCH_FETCH_SIZE);
+    showProgress();
+    await Promise.all(batch.map(async item => {
+      try {
+        await fetchInfoAndUpdate(item);
+        done++;
+      } catch {
+        failed++;
+      }
+    }));
+  }
+
+  // Final summary toast
+  if (failed > 0 && window.showToast) {
+    showToast(
+      t('batch_partial').replace('{ok}', done).replace('{total}', total).replace('{fail}', failed),
+      'info', 4000
+    );
+  } else if (window.showToast) {
+    showToast(t('batch_done').replace('{n}', done), 'info');
+  }
 }
 
 function shortenUrl(url) {
@@ -490,3 +710,148 @@ window.syncDailyCounter = syncDailyCounter;
 syncDailyCounter();
 // Refresh counter every 15 seconds
 setInterval(syncDailyCounter, 15000);
+
+// ── TRANSCRIPT MODE ────────────────────────────────────────
+
+const transUrlInput    = document.getElementById('transcript-url-input');
+const transFetchBtn    = document.getElementById('transcript-fetch-btn');
+const transClearBtn    = document.getElementById('transcript-clear-btn');
+const transAddQueueBtn = document.getElementById('transcript-add-queue-btn');
+const transOptionsCard = document.getElementById('transcript-options-card');
+const transPreviewEl   = document.getElementById('transcript-video-preview');
+const transHint        = document.getElementById('transcript-hint');
+
+let transCurrentInfo = null;
+
+transUrlInput?.addEventListener('input', () => {
+  const url      = transUrlInput.value.trim();
+  const platform = detectPlatform(url);
+  if (url && platform !== 'youtube') {
+    if (window.showToast) showToast(typeof t === 'function' ? t('transcript_youtube_only') : 'Transcripts are only supported for YouTube videos.', 'error');
+    transFetchBtn.disabled = true;
+  } else {
+    transFetchBtn.disabled = false;
+  }
+});
+
+transUrlInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); if (!transFetchBtn.disabled) transFetchInfo(); }
+});
+transFetchBtn?.addEventListener('click', transFetchInfo);
+
+async function transFetchInfo() {
+  const url = transUrlInput.value.trim();
+  if (!url) return;
+  if (detectPlatform(url) !== 'youtube') {
+    if (window.showToast) showToast(typeof t === 'function' ? t('transcript_youtube_only') : 'Only YouTube URLs are supported.', 'error');
+    return;
+  }
+
+  transFetchBtn.disabled = true;
+  transFetchBtn.innerHTML = `
+    <svg style="animation:spin 0.8s linear infinite;width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.07-8.5"/>
+    </svg>
+    ${typeof t === 'function' ? t('btn_fetching') : 'Fetching...'}
+  `;
+
+  try {
+    const res  = await fetch('/api/info', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    transCurrentInfo = { ...data, url };
+
+    document.getElementById('transcript-preview-title').textContent    = data.title    || '';
+    document.getElementById('transcript-preview-channel').textContent  = data.channel  || '';
+    document.getElementById('transcript-preview-duration').textContent = data.duration ? formatDuration(data.duration) : '';
+
+    const thumb = document.getElementById('transcript-preview-thumb');
+    if (data.thumbnail) {
+      thumb.src = `/api/thumbnail?url=${encodeURIComponent(data.thumbnail)}`;
+      thumb.style.display = 'block';
+    } else {
+      thumb.style.display = 'none';
+    }
+
+    transPreviewEl.style.display   = 'block';
+    transHint.style.display        = 'none';
+    transOptionsCard.style.display = 'block';
+    transUrlInput.value = '';
+
+    // ── Caption availability ───────────────────────────────
+    _updateTranscriptLangAvailability(data.available_langs || []);
+
+  } catch (err) {
+    if (window.showToast) showToast(err.message || (typeof t === 'function' ? t('err_fetch_failed') : 'Could not fetch video info.'), 'error');
+  } finally {
+    transFetchBtn.disabled = false;
+    transFetchBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span>${typeof t === 'function' ? t('btn_fetch') : 'Fetch'}</span>
+    `;
+  }
+}
+
+// ── Caption availability helpers ───────────────────────────
+function _updateTranscriptLangAvailability(availLangs) {
+  const warnEl = document.getElementById('transcript-subs-warn');
+  const okEl   = document.getElementById('transcript-subs-ok');
+  const addBtn = document.getElementById('transcript-add-queue-btn');
+  const noSubs = availLangs.length === 0;
+  if (warnEl) warnEl.style.display = noSubs ? '' : 'none';
+  if (okEl)   okEl.style.display   = noSubs ? 'none' : '';
+  if (addBtn) addBtn.disabled       = noSubs;
+}
+
+function _resetTranscriptLangUI() {
+  const warnEl = document.getElementById('transcript-subs-warn');
+  const okEl   = document.getElementById('transcript-subs-ok');
+  const addBtn = document.getElementById('transcript-add-queue-btn');
+  if (warnEl) warnEl.style.display = 'none';
+  if (okEl)   okEl.style.display   = 'none';
+  if (addBtn) addBtn.disabled       = false;
+}
+
+transClearBtn?.addEventListener('click', () => {
+  transUrlInput.value            = '';
+  transCurrentInfo               = null;
+  transPreviewEl.style.display   = 'none';
+  transOptionsCard.style.display = 'none';
+  transHint.style.display        = 'block';
+  _resetTranscriptLangUI();
+});
+
+transAddQueueBtn?.addEventListener('click', async () => {
+  if (!transCurrentInfo) return;
+  if (!await checkDailyLimit(1)) return;
+
+  const saveFolder = localStorage.getItem('grabbit-save-folder') || '';
+  const item = {
+    id:              `dl_${Date.now()}`,
+    url:             transCurrentInfo.url,
+    title:           transCurrentInfo.title,
+    thumbnail:       transCurrentInfo.thumbnail,
+    platform:        transCurrentInfo.platform,
+    format:          'text',
+    transcript_lang: transCurrentInfo.original_lang || '',
+    quality:         'best',
+    startTime:       '',
+    endTime:         '',
+    saveFolder,
+    status:          'waiting',
+    pct:             0,
+    speed:           '',
+  };
+  window.addToQueue(item);
+  navigateTo('queue');
+  transClearBtn.click();
+  syncDailyCounter();
+});
+
+

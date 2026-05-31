@@ -1,0 +1,34 @@
+# Credenciales — NUNCA subir a git
+.env
+.env.local
+
+# Datos de usuario generados en runtime
+data/settings.json
+data/queue.json
+data/limits.json
+data/watchlist.json
+data/thumb_cache/
+
+# Binarios del motor (yt-dlp, ffmpeg, deno) — la app los auto-descarga
+tools/
+
+# Metadata local del CLI de Supabase
+supabase/.temp/
+
+# Build artifacts
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.spec.bak
+
+# PyInstaller
+*.exe
+*.pkg
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

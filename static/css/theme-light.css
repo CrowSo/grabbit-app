@@ -1,50 +1,35 @@
-/* ============================================================
-   GRABBIT — theme-light.css
-   Identity: Crisp white content, deep indigo sidebar, electric violet accent
-   Feeling: Professional, clean, modern — like a premium Mac app
-   ============================================================ */
+/* GRABBIT — theme-light.css | Same token system as cobalt.tools */
 
 [data-theme="light"] {
-  /* Backgrounds */
-  --bg-base: #f0f2f8;
-  --bg-subtle: #e8eaf2;
-  --card-bg: #ffffff;
-  --input-bg: #f7f8fc;
+  --primary:   #ffffff;
+  --secondary: #000000;
+  --white:     #ffffff;
+  --gray:      #75757e;
+  --red:       #ed2236;
+  --green:     #30bd1b;
+  --blue:      #2f8af9;
 
-  /* Sidebar — deep indigo gradient, its own world */
-  --sidebar-bg: linear-gradient(175deg, #1e2761 0%, #2d1b69 60%, #3d1a7a 100%);
-  --sidebar-text: rgba(255, 255, 255, 0.95);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.45);
-  --sidebar-muted: rgba(255, 255, 255, 0.25);
-  --sidebar-hover: rgba(255, 255, 255, 0.08);
-  --sidebar-active-bg: rgba(255, 255, 255, 0.14);
-  --sidebar-glow: rgba(139, 92, 246, 0.4);
+  --button:          #f4f4f4;
+  --button-hover:    #ededed;
+  --button-press:    #e8e8e8;
+  --button-active-hover: #2a2a2a;
+  --button-hover-transparent: rgba(0,0,0,0.06);
+  --button-press-transparent: rgba(0,0,0,0.09);
+  --button-stroke:   rgba(0,0,0,0.06);
+  --button-text:     #282828;
+  --button-box-shadow: 0 0 0 1px var(--button-stroke) inset;
 
-  /* Accent */
-  --accent: #5b6ef5;
-  --accent-hover: #4558f0;
-  --accent-light: #a5b4fc;
-  --accent-subtle: rgba(91, 110, 245, 0.1);
-  --accent-glow: rgba(91, 110, 245, 0.3);
+  --button-elevated:        #e3e3e3;
+  --button-elevated-hover:  #dadada;
+  --button-elevated-press:  #d3d3d3;
+  --button-elevated-shimmer:#ededed;
 
-  /* Text */
-  --text-primary: #1a1f3c;
-  --text-secondary: #4b5280;
-  --text-muted: #8b91b5;
+  --popup-bg:     #f1f1f1;
+  --popup-stroke: rgba(0,0,0,0.08);
 
-  /* Borders & surfaces */
-  --border: rgba(91, 110, 245, 0.1);
-  --border-hover: rgba(91, 110, 245, 0.25);
+  --sidebar-bg:        var(--button);
+  --sidebar-stroke:    rgba(0,0,0,0.06);
 
-  /* Components */
-  --btn-ghost-bg: #ffffff;
-  --btn-ghost-hover: #f0f2f8;
-  --chip-bg: #ffffff;
-  --badge-bg: rgba(91, 110, 245, 0.06);
-  --progress-track: rgba(91, 110, 245, 0.1);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(26, 31, 60, 0.06), 0 1px 2px rgba(26, 31, 60, 0.04);
-  --shadow-md: 0 4px 16px rgba(26, 31, 60, 0.08);
-  --shadow-lg: 0 10px 40px rgba(26, 31, 60, 0.12);
+  --input-border: #adadb7;
+  --orange: #f59e0b;
 }

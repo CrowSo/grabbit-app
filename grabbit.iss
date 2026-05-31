@@ -4,11 +4,11 @@
 ; ============================================================
 
 #define AppName      "Grabbit"
-#define AppVersion   "1.2.1"
+#define AppVersion   "2.0.0"
 #define AppPublisher "AppGrabbit"
 #define AppURL       "https://appgrabbit.com"
 #define AppExeName   "Grabbit.exe"
-#define SourceDir    "C:\Users\enriq\OneDrive\Documents\grabbit-app"
+#define SourceDir    "C:\Users\enriq\OneDrive\Documents\GitHub\grabbit-app"
 
 [Setup]
 AppId={{A7B3C9D1-E2F4-4A5B-8C6D-9E0F1A2B3C4D}

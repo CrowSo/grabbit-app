@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    GRABBIT — app.js
    Core navigation, theme switching, shared state
    ============================================================ */
@@ -16,13 +16,13 @@ const PREMIUM_THEMES = ['ocean', 'forest', 'ember', 'rose'];
 const ALL_THEMES     = [...FREE_THEMES, ...PREMIUM_THEMES];
 
 function applyTheme(theme) {
-  const isPro     = !!localStorage.getItem('grabbit-license');
+  const isPro     = window.isProOrTrial ? window.isProOrTrial() : !!localStorage.getItem('grabbit-license');
   const isPremium = PREMIUM_THEMES.includes(theme);
 
   if (isPremium && !isPro) {
     // Delay to ensure queue.js showToast is available
     setTimeout(() => {
-      if (window.showToast) window.showToast('Unlock Pro to use premium themes', 'info');
+      if (window.showToast) window.showToast(t('toast_pro_themes'), 'info');
     }, 100);
     navigateTo('license');
     return;
@@ -64,10 +64,11 @@ document.querySelectorAll('[data-theme-set]').forEach(el => {
 // ── Navigation ─────────────────────────────────────────────
 const pageTitles = {
   download: 'Download',
-  queue: 'Queue',
-  library: 'Library',
+  queue:    'Queue',
+  library:  'Library',
+  watch:    'Watch',
   settings: 'Settings',
-  license: 'License',
+  license:  'License',
 };
 
 function navigateTo(pageId) {
@@ -84,6 +85,13 @@ function navigateTo(pageId) {
 
   document.getElementById('page-title').textContent = pageTitles[pageId] || pageId;
   state.currentPage = pageId;
+
+  if (pageId === 'library' && typeof window.syncLibrary === 'function') {
+    window.syncLibrary();
+  }
+  if (pageId === 'watch' && typeof window.loadWatchlist === 'function') {
+    window.loadWatchlist();
+  }
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -149,8 +157,8 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
   try {
     const res  = await fetch('/api/startup_ready');
     const data = await res.json();
-    if (data.ready) return; // Tools already installed, show app normally
-  } catch { return; }
+    if (data.ready) { initOnboarding(); return; }
+  } catch { initOnboarding(); return; }
 
   // Show splash
   splash.style.display = 'flex';
@@ -158,9 +166,9 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
 
   const statusMap = {
     ok:         { icon: '✓', color: '#22c55e' },
-    installing: { icon: '⬇', color: 'var(--accent)' },
-    updating:   { icon: '⟳', color: 'var(--accent)' },
-    checking:   { icon: '⟳', color: 'var(--text-muted)' },
+    installing: { icon: '⬇', color: 'var(--secondary)' },
+    updating:   { icon: '⟳', color: 'var(--secondary)' },
+    checking:   { icon: '⟳', color: 'var(--gray)' },
     error:      { icon: '✗', color: '#ef4444' },
   };
 
@@ -202,6 +210,7 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
           setTimeout(() => {
             splash.style.display = 'none';
             document.querySelector('.app-shell').style.visibility = 'visible';
+            initOnboarding();
           }, 400);
         }, 600);
       } else if (error) {
@@ -225,25 +234,25 @@ async function checkForUpdates() {
     const toast = document.createElement('div');
     toast.style.cssText = `
       position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:var(--card-bg); border:1px solid var(--accent);
+      background:var(--button-elevated); border:1px solid var(--secondary);
       border-radius:12px; padding:14px 20px; z-index:9998;
       display:flex; align-items:center; gap:16px;
       box-shadow:0 8px 32px rgba(0,0,0,0.4);
-      font-size:0.88rem; color:var(--text-primary);
+      font-size:0.88rem; color:var(--secondary);
       animation:slideUp 0.3s ease;
     `;
     toast.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      <span>Grabbit <strong style="color:var(--accent);">v${data.version}</strong> is available</span>
+      <span>Grabbit <strong style="color:var(--secondary);">v${data.version}</strong> is available</span>
       <button id="update-now-btn" style="
-        background:var(--accent); color:#fff; border:none; border-radius:8px;
+        background:var(--secondary); color:#fff; border:none; border-radius:8px;
         padding:6px 14px; font-size:0.82rem; font-weight:600; cursor:pointer;
       ">Update now</button>
       <button id="update-dismiss-btn" style="
-        background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem; line-height:1;
+        background:none; border:none; color:var(--gray); cursor:pointer; font-size:1.1rem; line-height:1;
       ">×</button>
     `;
     document.body.appendChild(toast);
@@ -272,6 +281,131 @@ async function checkForUpdates() {
 // Check for updates 5s after load (give server time to check GitHub)
 setTimeout(checkForUpdates, 5000);
 
+// ── Trial / Pro helpers ────────────────────────────────────
+function isTrialActive() {
+  const end = localStorage.getItem('grabbit-trial-end');
+  if (!end) return false;
+  return new Date() < new Date(end);
+}
+
+window.isProOrTrial = function() {
+  return !!localStorage.getItem('grabbit-license') || isTrialActive();
+};
+
+// ── Onboarding modal ───────────────────────────────────────
+function needsOnboarding() {
+  return !localStorage.getItem('grabbit-license') && !isTrialActive();
+}
+
+function hideOnboarding() {
+  const modal = document.getElementById('onboarding-modal');
+  if (!modal) return;
+  modal.style.opacity    = '0';
+  modal.style.transition = 'opacity 0.3s ease';
+  setTimeout(() => { modal.style.display = 'none'; }, 300);
+  if (window.syncDailyCounter) syncDailyCounter();
+}
+
+async function initOnboarding() {
+  if (!needsOnboarding()) return;
+
+  const modal = document.getElementById('onboarding-modal');
+  if (!modal) return;
+  modal.style.display   = 'flex';
+  modal.style.opacity   = '0';
+  modal.style.transition = 'opacity 0.4s ease';
+  setTimeout(() => { modal.style.opacity = '1'; }, 50);
+
+  // Format license input
+  const licInput = document.getElementById('onboarding-license-input');
+  licInput?.addEventListener('input', () => {
+    let val = licInput.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const parts = [];
+    if (val.length > 0)  parts.push(val.substring(0, 4));
+    if (val.length > 4)  parts.push(val.substring(4, 8));
+    if (val.length > 8)  parts.push(val.substring(8, 12));
+    if (val.length > 12) parts.push(val.substring(12, 16));
+    licInput.value = parts.join('-');
+  });
+
+  // Trial start
+  document.getElementById('onboarding-btn')?.addEventListener('click', async () => {
+    const email = document.getElementById('onboarding-email')?.value.trim();
+    const msg   = document.getElementById('onboarding-msg');
+    const btn   = document.getElementById('onboarding-btn');
+    if (!email || !email.includes('@')) {
+      msg.textContent = 'Enter a valid email address.';
+      return;
+    }
+    btn.disabled    = true;
+    btn.textContent = 'Starting trial...';
+    msg.textContent = '';
+    try {
+      const res  = await fetch('/api/trial/start', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (data.trial_end) localStorage.setItem('grabbit-trial-end', data.trial_end);
+        hideOnboarding();
+        if (window.showToast) window.showToast(t('toast_trial_ok'), 'success');
+        if (window.syncDailyCounter) window.syncDailyCounter();
+        // Refresh license page UI if it's open
+        if (window.checkTrialStatus) window.checkTrialStatus();
+      } else {
+        const msgs = {
+          already_used_machine: 'This device already used a trial.',
+          already_used_email:   'This email already used a trial.',
+          invalid_email:        'Enter a valid email address.',
+        };
+        msg.textContent = msgs[data.error] || 'Could not start trial. Try again.';
+        btn.disabled    = false;
+        btn.textContent = 'Start free trial — 3 days Pro';
+      }
+    } catch {
+      msg.textContent = 'Connection error. Is the app running?';
+      btn.disabled    = false;
+      btn.textContent = 'Start free trial — 3 days Pro';
+    }
+  });
+
+  // License activation from onboarding
+  document.getElementById('onboarding-license-btn')?.addEventListener('click', async () => {
+    const code = document.getElementById('onboarding-license-input')?.value.trim();
+    const msg  = document.getElementById('onboarding-license-msg');
+    const btn  = document.getElementById('onboarding-license-btn');
+    if (!code) return;
+    btn.disabled    = true;
+    btn.textContent = 'Checking...';
+    msg.textContent = '';
+    try {
+      const res  = await fetch('/api/license/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        localStorage.setItem('grabbit-license', code);
+        localStorage.setItem('grabbit-license-data', JSON.stringify(data));
+        hideOnboarding();
+        if (window.showToast) window.showToast(t('toast_license_ok'), 'success');
+        if (window.syncDailyCounter) window.syncDailyCounter();
+      } else {
+        msg.textContent = data.error || 'Invalid license key.';
+        msg.style.color = '#ef4444';
+        btn.disabled    = false;
+        btn.textContent = 'Activate';
+      }
+    } catch {
+      msg.textContent = 'Connection error.';
+      btn.disabled    = false;
+      btn.textContent = 'Activate';
+    }
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────
 applyTheme(state.theme);
 checkToolStatus();
+

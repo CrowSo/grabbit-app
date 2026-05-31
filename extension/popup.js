@@ -19,6 +19,7 @@ let selectedFormat  = 'video+audio';
 let selectedQuality = 'best';
 let activeJobId     = null;
 let pollInterval    = null;
+let cachedLimits    = null; // populated by updateLimitPill(), used by renderVideoInfo()
 
 // ── Helpers ────────────────────────────────────────────────
 function getTodayKey() {
@@ -29,19 +30,10 @@ function getDailyCount() {
   return parseInt(localStorage.getItem(getTodayKey()) || '0', 10);
 }
 
-function incrementDailyCount() {
-  const key   = getTodayKey();
-  const count = getDailyCount() + 1;
-  localStorage.setItem(key, String(count));
-  return count;
-}
-
-function isPro() {
-  return !!localStorage.getItem('grabbit-license');
-}
-
 function getRemainingToday() {
-  if (isPro()) return Infinity;
+  // Prefer server-side limits (includes trial + license check)
+  if (cachedLimits) return cachedLimits.remaining;
+  // Fallback: local count against free tier
   return Math.max(0, FREE_DAILY_LIMIT - getDailyCount());
 }
 
@@ -93,6 +85,7 @@ async function updateLimitPill() {
     const code   = config.license_code || '';
     const res2   = await fetch(`${SERVER}/api/limits/status?license=${encodeURIComponent(code)}`);
     const limits = await res2.json();
+    cachedLimits = limits; // cache for renderVideoInfo()
     if (limits.is_pro) {
       pill.textContent = 'Pro — Unlimited';
       pill.className   = 'limit-pill';
@@ -334,7 +327,9 @@ async function init() {
 
   currentPlatform = platform;
   setPlatformBadge(platform);
-  updateLimitPill();
+
+  // Await limits so cachedLimits is ready when renderVideoInfo() runs
+  await updateLimitPill();
 
   // Show loading state while fetching info
   showSection('loading');

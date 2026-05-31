@@ -63,6 +63,16 @@
           <span data-i18n="nav_library">Library</span>
         </a>
       </li>
+      <li class="nav-item" data-page="watch">
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span data-i18n="nav_watch">Watch</span>
+          <span class="nav-badge" id="watch-badge" style="display:none;">0</span>
+        </a>
+      </li>
     </ul>
 
     <div style="margin-top:24px;margin-bottom:8px;">
@@ -110,7 +120,7 @@
     <header class="topbar">
       <h1 class="page-title" id="page-title" data-i18n="nav_download">Download</h1>
       <div class="topbar-actions">
-        <span id="daily-counter" style="font-size:0.78rem;color:var(--text-muted);display:none;"></span>
+        <span id="daily-counter" style="font-size:0.78rem;color:var(--gray);display:none;"></span>
         <span id="license-pill" class="status-pill waiting" data-i18n="plan_free">Free</span>
       </div>
     </header>
@@ -120,144 +130,365 @@
       <!-- ── DOWNLOAD ── -->
       <section class="page active" id="page-download">
         <div class="download-hero">
-          <div class="card" style="margin-bottom:0;">
-            <div class="input-group" style="margin-bottom:14px;">
-              <label class="input-label" data-i18n="paste_link">Paste your link</label>
-              <div class="url-row">
-                <input class="input input-url" id="url-input" type="url"
-                  data-i18n-placeholder="url_placeholder"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  autocomplete="off" spellcheck="false" />
-                <button class="btn btn-primary" id="fetch-btn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                  <span data-i18n="btn_fetch">Fetch</span>
+
+          <!-- Platform issue banner (shown when a platform has known issues) -->
+          <div id="platform-issue-banner" class="card" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(245,158,11,0.08);border-left:3px solid var(--orange, #f59e0b);">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange, #f59e0b)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <div style="flex:1;min-width:0;">
+                <div id="platform-issue-title" style="font-size:0.78rem;font-weight:700;color:var(--orange, #f59e0b);letter-spacing:0.04em;margin-bottom:4px;">Issues with platform</div>
+                <div id="platform-issue-body" style="font-size:0.75rem;color:var(--gray);line-height:1.5;">We are detecting problems. The app will update automatically.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode toggle -->
+          <div class="mode-toggle-row">
+            <button class="mode-btn active" id="mode-single-btn" onclick="setDownloadMode('single')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span data-i18n="mode_single">Single link</span>
+            </button>
+            <button class="mode-btn" id="mode-batch-btn" onclick="setDownloadMode('batch')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span data-i18n="mode_batch">Batch</span>
+            </button>
+            <button class="mode-btn" id="mode-transcript-btn" onclick="setDownloadMode('transcript')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+              </svg>
+              <span data-i18n="mode_transcript">Transcript</span>
+            </button>
+          </div>
+
+          <!-- ── SINGLE MODE ── -->
+          <div id="single-mode">
+
+            <!-- Pinterest tip (shown only when user pastes a pin.it/ short link) -->
+            <div id="pinterest-tip-single" class="card" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(230,0,35,0.06);border-left:3px solid var(--color-pinterest);">
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-pinterest)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.78rem;font-weight:700;color:var(--color-pinterest);letter-spacing:0.04em;margin-bottom:4px;" data-i18n="pinterest_tip_title">Pinterest tip</div>
+                  <div style="font-size:0.75rem;color:var(--gray);line-height:1.5;" data-i18n="pinterest_tip_body">To download from Pinterest: open the pin in your browser and copy the long URL from the address bar.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:0;">
+              <div class="input-group" style="margin-bottom:14px;">
+                <label class="input-label" data-i18n="paste_link">Paste your link</label>
+                <div class="url-row">
+                  <input class="input input-url" id="url-input" type="url"
+                    data-i18n-placeholder="url_placeholder"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    autocomplete="off" spellcheck="false" />
+                  <button class="btn btn-primary" id="fetch-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span data-i18n="btn_fetch">Fetch</span>
+                  </button>
+                </div>
+              </div>
+              <div id="platform-row" style="display:none;margin-bottom:14px;">
+                <span class="platform-badge" id="platform-badge">
+                  <span class="platform-dot"></span>
+                  <span id="platform-name">YouTube</span>
+                </span>
+              </div>
+              <div class="video-preview" id="video-preview" style="display:none;padding:0;border:none;margin-top:0;background:transparent;">
+                <img class="preview-thumb" id="preview-thumb" src="" alt="" />
+                <div class="preview-info">
+                  <div class="preview-title" id="preview-title"></div>
+                  <div class="preview-meta">
+                    <span id="preview-channel"></span>
+                    <span id="preview-duration"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" id="options-card" style="display:none;margin-top:12px;">
+              <div class="options-grid">
+                <div>
+                  <div class="section-label" data-i18n="section_format">Format</div>
+                  <div class="chip-group" id="format-chips">
+                    <label class="chip selected" data-value="video+audio">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                      <span data-i18n="format_video_audio">Video + Audio</span>
+                    </label>
+                    <label class="chip" data-value="video">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+                      <span data-i18n="format_video">Video only</span>
+                    </label>
+                    <label class="chip" data-value="audio">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                      <span data-i18n="format_audio">Audio only</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <div class="section-label" data-i18n="section_quality">Quality</div>
+                  <div class="chip-group" id="quality-chips">
+                    <label class="chip selected" data-value="best"><span data-i18n="quality_best">Best</span></label>
+                    <label class="chip" data-value="1080">1080p</label>
+                    <label class="chip" data-value="720">720p</label>
+                    <label class="chip" data-value="480">480p</label>
+                    <label class="chip" data-value="360">360p</label>
+                  </div>
+                </div>
+              </div>
+              <div id="segment-section" style="margin-top:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                    <input type="checkbox" id="segment-toggle" style="width:16px;height:16px;accent-color:var(--secondary);cursor:pointer;" />
+                    <span style="font-size:0.85rem;font-weight:600;color:var(--secondary);" data-i18n="section_segment">Clip a segment</span>
+                  </label>
+                  <span style="font-size:0.75rem;color:var(--gray);" data-i18n="segment_hint">Download only a portion of the video</span>
+                </div>
+                <div id="segment-inputs" style="display:none;background:var(--button-elevated);border:1px solid var(--button-stroke);border-radius:10px;padding:14px;">
+                  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;">
+                    <div>
+                      <div style="font-size:0.72rem;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Start time</div>
+                      <input class="input" id="start-time" placeholder="0:00" style="text-align:center;font-family:monospace;font-size:1rem;font-weight:600;" />
+                    </div>
+                    <div style="color:var(--gray);font-size:1.2rem;margin-top:20px;">→</div>
+                    <div>
+                      <div style="font-size:0.72rem;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">End time</div>
+                      <input class="input" id="end-time" placeholder="1:30" style="text-align:center;font-family:monospace;font-size:1rem;font-weight:600;" />
+                    </div>
+                  </div>
+                  <div style="font-size:0.72rem;color:var(--gray);margin-top:8px;text-align:center;">Format: <code style="background:var(--button-elevated);padding:1px 6px;border-radius:4px;">mm:ss</code> or <code style="background:var(--button-elevated);padding:1px 6px;border-radius:4px;">hh:mm:ss</code></div>
+                </div>
+              </div>
+              <div class="add-queue-bar">
+                <button class="btn btn-ghost" id="clear-btn" data-i18n="btn_clear">Clear</button>
+                <button class="btn btn-primary btn-lg" id="add-queue-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span data-i18n="btn_add_queue">Add to Queue</span>
                 </button>
               </div>
-              <!-- Multi-link area — appears when user pastes multiple URLs -->
-              <div id="multi-link-area" style="display:none;margin-top:10px;">
-                <textarea id="multi-url-input" class="input"
-                  style="resize:vertical;min-height:100px;font-size:0.82rem;font-family:monospace;line-height:1.6;"
-                  placeholder="One URL per line&#10;https://youtube.com/watch?v=...&#10;https://tiktok.com/@user/video/...&#10;https://instagram.com/reel/..."></textarea>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
-                  <span id="multi-link-count" style="font-size:0.8rem;color:var(--text-muted);">0 links detected</span>
-                  <div style="display:flex;gap:8px;">
-                    <button class="btn btn-ghost btn-sm" id="multi-cancel-btn">Cancel</button>
-                    <button class="btn btn-primary btn-sm" id="multi-add-btn">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </div>
+
+            <div id="download-hint" style="text-align:center;padding:48px 0;color:var(--gray);">
+              <svg style="width:52px;height:52px;margin:0 auto 16px;display:block;opacity:0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <p style="font-size:0.9rem;" data-i18n="hint_paste">Paste a link above to get started</p>
+              <p style="font-size:0.78rem;margin-top:6px;opacity:0.7;" data-i18n="hint_platforms">YouTube · TikTok · Instagram · Facebook · Twitter · Pinterest · Twitch</p>
+            </div>
+          </div>
+
+          <!-- ── TRANSCRIPT MODE ── -->
+          <div id="transcript-mode" style="display:none;">
+            <div class="batch-grid">
+
+              <!-- LEFT: una sola card con todo adentro (igual que batch) -->
+              <div class="batch-left">
+                <div class="card">
+
+                  <!-- Tipo / descripción — ARRIBA -->
+                  <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--button-stroke);">
+                    <div style="font-size:0.78rem;font-weight:700;color:var(--color-youtube);letter-spacing:0.05em;margin-bottom:3px;" data-i18n="transcript_title">EXTRACT VIDEO TEXT</div>
+                    <div style="font-size:0.75rem;color:var(--gray);line-height:1.5;" data-i18n="transcript_body">Download the complete transcript of any YouTube video as a clean text file. Works only with videos that have closed captions.</div>
+                  </div>
+
+                  <!-- URL input -->
+                  <div class="input-group" style="margin-bottom:16px;">
+                    <label class="input-label" data-i18n="paste_link_youtube">Paste a YouTube link</label>
+                    <div class="url-row">
+                      <input class="input input-url" id="transcript-url-input" type="url"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                        autocomplete="off" spellcheck="false" />
+                      <button class="btn btn-primary" id="transcript-fetch-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <span data-i18n="btn_fetch">Fetch</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Aviso de disponibilidad — aparece tras el fetch -->
+                  <div id="transcript-subs-warn" style="display:none;font-size:0.76rem;margin-bottom:14px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:var(--red,#ef4444);" data-i18n="transcript_no_subs_warn">
+                    This video has no subtitles available.
+                  </div>
+                  <div id="transcript-subs-ok" style="display:none;font-size:0.76rem;margin-bottom:14px;padding:8px 12px;border-radius:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:#22c55e;" data-i18n="transcript_subs_ok">
+                    Subtitles available — ready to download.
+                  </div>
+
+                  <!-- Actions (aparecen tras el fetch) -->
+                  <div id="transcript-options-card" style="display:none;">
+                    <div class="add-queue-bar" style="margin-top:0;border-top:1px solid var(--button-stroke);padding-top:14px;">
+                      <button class="btn btn-ghost" id="transcript-clear-btn" data-i18n="btn_clear">Clear</button>
+                      <button class="btn btn-primary btn-lg" id="transcript-add-queue-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span data-i18n="btn_download_text">Download Text</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- RIGHT: preview (hint antes del fetch, video después) — igual que batch-right -->
+              <div class="batch-right">
+                <div class="card" id="transcript-right-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+
+                  <div id="transcript-hint">
+                    <svg style="width:44px;height:44px;margin:0 auto 12px;display:block;opacity:0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    <p style="font-size:0.88rem;color:var(--gray);text-align:center;" data-i18n="transcript_hint">Paste a YouTube link above to extract its text</p>
+                  </div>
+
+                  <div id="transcript-video-preview" style="display:none;width:100%;">
+                    <div class="video-preview" style="padding:0;border:none;background:transparent;">
+                      <img class="preview-thumb" id="transcript-preview-thumb" src="" alt="" />
+                      <div class="preview-info">
+                        <div class="preview-title" id="transcript-preview-title"></div>
+                        <div class="preview-meta">
+                          <span id="transcript-preview-channel"></span>
+                          <span id="transcript-preview-duration"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── BATCH MODE ── -->
+          <div id="batch-mode" style="display:none;">
+
+            <!-- Pinterest share-link tip (only when user pastes a pin.it/) -->
+            <div id="pinterest-tip" class="card" style="display:none;margin-bottom:12px;padding:12px 14px;background:rgba(230,0,35,0.06);border-left:3px solid var(--color-pinterest);">
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-pinterest)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.78rem;font-weight:700;color:var(--color-pinterest);letter-spacing:0.04em;margin-bottom:4px;" data-i18n="pinterest_tip_title">Pinterest tip</div>
+                  <div style="font-size:0.75rem;color:var(--gray);line-height:1.5;" data-i18n="pinterest_tip_body">If you paste a "Share" link (pin.it/...), Pinterest blocks it. For maximum reliability: open the pin in your browser and copy the long URL from the address bar.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2-column layout: LEFT = input + dropzone, RIGHT = options + staging list -->
+            <div class="batch-grid">
+
+              <!-- LEFT column -->
+              <div class="batch-left">
+                <div class="card">
+
+                  <!-- URL input that auto-adds -->
+                  <div class="input-group" style="margin-bottom:14px;">
+                    <label class="input-label" data-i18n="batch_paste_hint">Paste links one by one — each gets added automatically</label>
+                    <div class="url-row">
+                      <input class="input input-url" id="batch-url-input" type="url"
+                        data-i18n-placeholder="batch_url_placeholder"
+                        placeholder="Paste a link and press Enter..."
+                        autocomplete="off" spellcheck="false" />
+                      <button class="btn btn-ghost" id="batch-add-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Drop zone + upload button -->
+                  <div class="batch-dropzone" id="batch-dropzone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;opacity:0.4;margin-bottom:8px;">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span style="font-size:0.82rem;color:var(--gray);" data-i18n="batch_drop_hint">Or drag and drop a .txt file here</span>
+                    <button class="btn btn-ghost btn-sm" id="batch-upload-btn" style="margin-top:8px;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                       </svg>
-                      Add all to Queue
+                      <span data-i18n="batch_upload_txt">Upload .txt file</span>
+                    </button>
+                    <input type="file" id="batch-file-input" accept=".txt" style="display:none;" />
+                    <div class="batch-txt-legend">
+                      <span data-i18n="batch_txt_legend">File format: one link per line</span>
+                      <code>https://youtube.com/watch?v=...</code>
+                      <code>https://tiktok.com/@user/video/...</code>
+                      <code>https://instagram.com/reel/...</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT column -->
+              <div class="batch-right">
+                <div class="card" id="batch-staging-card">
+
+                  <!-- Options ABOVE the list -->
+                  <div id="batch-options" style="display:none;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--button-stroke);">
+                    <div class="options-grid" style="margin-bottom:14px;">
+                      <div>
+                        <div class="section-label" data-i18n="section_format">Format</div>
+                        <div class="chip-group" id="batch-format-chips">
+                          <label class="chip selected" data-value="video+audio"><span data-i18n="format_video_audio">Video + Audio</span></label>
+                          <label class="chip" data-value="audio"><span data-i18n="format_audio">Audio only</span></label>
+                          <label class="chip" data-value="video"><span data-i18n="format_video">Video only</span></label>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="section-label" data-i18n="section_quality">Quality</div>
+                        <div class="chip-group" id="batch-quality-chips">
+                          <label class="chip selected" data-value="best"><span data-i18n="quality_best">Best</span></label>
+                          <label class="chip" data-value="1080">1080p</label>
+                          <label class="chip" data-value="720">720p</label>
+                          <label class="chip" data-value="480">480p</label>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg" id="batch-download-btn" style="width:100%;justify-content:center;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      <span id="batch-download-label" data-i18n="batch_add_all">Download all</span>
                     </button>
                   </div>
+
+                  <!-- List header -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                    <span id="batch-count" style="font-size:0.82rem;color:var(--gray);" data-i18n="batch_empty">No links yet</span>
+                    <button class="btn btn-ghost btn-sm" id="batch-clear-all-btn" style="display:none;" onclick="batchClearAll()" data-i18n="batch_clear_all">Clear all</button>
+                  </div>
+
+                  <!-- The list itself — internal scroll only -->
+                  <div id="batch-staging-list" class="batch-staging-list"></div>
                 </div>
               </div>
-            </div>
-            <div id="platform-row" style="display:none;margin-bottom:14px;">
-              <span class="platform-badge" id="platform-badge">
-                <span class="platform-dot"></span>
-                <span id="platform-name">YouTube</span>
-              </span>
-            </div>
-            <div class="video-preview" id="video-preview" style="display:none;padding:0;border:none;margin-top:0;background:transparent;">
-              <img class="preview-thumb" id="preview-thumb" src="" alt="" />
-              <div class="preview-info">
-                <div class="preview-title" id="preview-title"></div>
-                <div class="preview-meta">
-                  <span id="preview-channel"></span>
-                  <span id="preview-duration"></span>
-                </div>
-              </div>
+
             </div>
           </div>
 
-          <div class="card" id="options-card" style="display:none;margin-top:12px;">
-            <div class="options-grid">
-              <div>
-                <div class="section-label" data-i18n="section_format">Format</div>
-                <div class="chip-group" id="format-chips">
-                  <label class="chip selected" data-value="video+audio">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                    </svg>
-                    <span data-i18n="format_video_audio">Video + Audio</span>
-                  </label>
-                  <label class="chip" data-value="video">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="2" y="3" width="20" height="14" rx="2"/>
-                    </svg>
-                    <span data-i18n="format_video">Video only</span>
-                  </label>
-                  <label class="chip" data-value="audio">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                    </svg>
-                    <span data-i18n="format_audio">Audio only</span>
-                  </label>
-                </div>
-              </div>
-              <div>
-                <div class="section-label" data-i18n="section_quality">Quality</div>
-                <div class="chip-group" id="quality-chips">
-                  <label class="chip selected" data-value="best"><span data-i18n="quality_best">Best</span></label>
-                  <label class="chip" data-value="1080">1080p</label>
-                  <label class="chip" data-value="720">720p</label>
-                  <label class="chip" data-value="480">480p</label>
-                  <label class="chip" data-value="360">360p</label>
-                </div>
-              </div>
-            </div>
-            <div id="segment-section" style="margin-top:18px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
-                  <input type="checkbox" id="segment-toggle" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" />
-                  <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);" data-i18n="section_segment">Clip a segment</span>
-                </label>
-                <span style="font-size:0.75rem;color:var(--text-muted);" data-i18n="segment_hint">Download only a portion of the video</span>
-              </div>
-              <div id="segment-inputs" style="display:none;background:var(--bg-subtle);border:1px solid var(--border);border-radius:10px;padding:14px;">
-                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;">
-                  <div>
-                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Start time</div>
-                    <input class="input" id="start-time" placeholder="0:00" style="text-align:center;font-family:monospace;font-size:1rem;font-weight:600;" />
-                  </div>
-                  <div style="color:var(--text-muted);font-size:1.2rem;margin-top:20px;">→</div>
-                  <div>
-                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">End time</div>
-                    <input class="input" id="end-time" placeholder="1:30" style="text-align:center;font-family:monospace;font-size:1rem;font-weight:600;" />
-                  </div>
-                </div>
-                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;text-align:center;">Format: <code style="background:var(--card-bg);padding:1px 6px;border-radius:4px;">mm:ss</code> or <code style="background:var(--card-bg);padding:1px 6px;border-radius:4px;">hh:mm:ss</code></div>
-              </div>
-            </div>
-            <div class="add-queue-bar">
-              <button class="btn btn-ghost" id="clear-btn" data-i18n="btn_clear">Clear</button>
-              <button class="btn btn-primary btn-lg" id="add-queue-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                <span data-i18n="btn_add_queue">Add to Queue</span>
-              </button>
-            </div>
-          </div>
-
-          <div id="download-hint" style="text-align:center;padding:48px 0;color:var(--text-muted);">
-            <svg style="width:52px;height:52px;margin:0 auto 16px;display:block;opacity:0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            <p style="font-size:0.9rem;" data-i18n="hint_paste">Paste a link above to get started</p>
-            <p style="font-size:0.78rem;margin-top:6px;opacity:0.7;" data-i18n="hint_platforms">YouTube · TikTok · Instagram · Facebook · Twitter · Pinterest · Twitch</p>
-          </div>
         </div>
       </section>
 
       <!-- ── QUEUE ── -->
       <section class="page" id="page-queue">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <span id="queue-count" style="font-size:0.82rem;color:var(--text-muted);">0 items</span>
-          <button class="btn btn-ghost btn-sm" id="clear-completed-btn" data-i18n="btn_clear_completed">Clear completed</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:8px;">
+          <span id="queue-count" style="font-size:0.82rem;color:var(--gray);">0 items</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" id="clear-errors-btn" style="display:none;color:var(--red);" onclick="clearErrorItems()">Clear errors</button>
+            <button class="btn btn-ghost btn-sm" id="clear-completed-btn" data-i18n="btn_clear_completed">Clear completed</button>
+          </div>
         </div>
         <div class="queue-list" id="queue-list">
           <div class="queue-empty" id="queue-empty">
@@ -273,33 +504,42 @@
 
       <!-- ── LIBRARY ── -->
       <section class="page" id="page-library">
-        <div class="library-header">
-          <div class="filter-row">
-            <label class="chip selected" data-filter="all" data-i18n="filter_all">All</label>
-            <label class="chip" data-filter="video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
-                <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-              </svg>
-              <span data-i18n="filter_video">Video</span>
-            </label>
-            <label class="chip" data-filter="audio">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
-                <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-              </svg>
-              <span data-i18n="filter_audio">Audio</span>
-            </label>
+        <div class="library-header" style="flex-direction:column; gap:16px; align-items:stretch;">
+          <!-- Search Bar -->
+          <div class="lib-search-wrap" id="lib-search-wrap" style="position:relative; width:100%;">
+            <svg class="lib-search-icon" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--gray); pointer-events:none; transition:color 0.3s ease;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="lib-search-input" class="input" placeholder="Search in all platforms..." autocomplete="off" spellcheck="false" style="width:100%; padding-left:38px; border-radius:10px; font-size:0.9rem; border:2px solid transparent; background:var(--button-elevated); transition:all 0.3s ease;" />
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button class="btn btn-danger btn-sm" id="clear-deleted-btn" style="display:none;">Clear deleted</button>
-            <select class="input" id="sort-select" style="width:auto;padding:7px 12px;font-size:0.82rem;">
-              <option data-i18n="sort_newest">Newest</option>
-              <option data-i18n="sort_oldest">Oldest</option>
-              <option data-i18n="sort_name">Name</option>
-            </select>
+
+          <!-- Filters -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div class="filter-row" id="lib-platform-filters">
+              <label class="chip selected" data-filter="all">All</label>
+              <label class="chip" data-filter="youtube" data-color="#ef4444">YouTube</label>
+              <label class="chip" data-filter="tiktok" data-color="#06b6d4">TikTok</label>
+              <label class="chip" data-filter="instagram" data-color="#d946ef">Instagram</label>
+              <label class="chip" data-filter="facebook" data-color="#3b82f6">Facebook</label>
+              <label class="chip" data-filter="twitter" data-color="#0ea5e9">X / Twitter</label>
+              <label class="chip" data-filter="twitch" data-color="#8b5cf6">Twitch</label>
+              <label class="chip" data-filter="other" data-color="#64748b">Other</label>
+              <label class="chip" data-filter="text" data-color="#22c55e" data-i18n="filter_text">Text</label>
+            </div>
+            
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-danger btn-sm" id="clear-deleted-btn" style="display:none;" data-i18n="library_clear_deleted">Clear deleted</button>
+              <select class="input" id="sort-select" style="width:auto;padding:7px 12px;font-size:0.82rem;">
+                <option value="newest" data-i18n="sort_newest">Newest</option>
+                <option value="oldest" data-i18n="sort_oldest">Oldest</option>
+                <option value="name" data-i18n="sort_name">Name</option>
+                <option value="platform">Platform</option>
+              </select>
+            </div>
           </div>
         </div>
         <div id="library-content">
-          <div style="text-align:center;padding:60px 20px;color:var(--text-muted);" id="library-empty">
+          <div style="text-align:center;padding:60px 20px;color:var(--gray);" id="library-empty">
             <svg style="width:48px;height:48px;margin:0 auto 14px;display:block;opacity:0.2;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
@@ -308,114 +548,318 @@
         </div>
       </section>
 
+      <!-- ── WATCH ── -->
+      <section class="page" id="page-watch">
+
+        <!-- ── VIEW 1: Channel list ── -->
+        <div id="watch-channel-list-view">
+          <div class="download-hero" style="margin-bottom:24px;">
+            <div class="card" style="margin-bottom:0;">
+              <div class="input-group" style="margin-bottom:0;">
+                <label class="input-label" data-i18n="watch_add_channel">Add a YouTube channel to your Watch list</label>
+                <div class="url-row">
+                  <input class="input input-url" id="watch-url-input" type="url"
+                    data-i18n-placeholder="watch_placeholder"
+                    placeholder="https://www.youtube.com/c/MKBHD"
+                    autocomplete="off" spellcheck="false" />
+                  <button class="btn btn-primary" id="watch-add-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span data-i18n="btn_add">Add</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="watch-grid" id="watch-list">
+            <div class="queue-empty" id="watch-empty" style="grid-column:1/-1;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin-bottom:14px;opacity:0.2;">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <p data-i18n="watch_empty_msg">Your Watch list is empty</p>
+              <p style="font-size:0.78rem;margin-top:6px;opacity:0.7;" data-i18n="watch_empty_sub">Add a channel to start monitoring for new content automatically.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── VIEW 2: Video browser ── -->
+        <div id="watch-video-browser" style="display:none;">
+
+          <div class="wvb-sticky-wrapper">
+            <!-- Header: back + channel info + tabs + period filters -->
+            <div class="wvb-header">
+              <button class="btn btn-ghost wvb-back-btn" onclick="_showChannelList()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                <span data-i18n="watch_back">Back</span>
+              </button>
+              <img id="wvb-avatar" class="wvb-header-avatar" src="" alt="">
+              <span id="wvb-channel-name" class="wvb-header-name"></span>
+            </div>
+
+            <!-- Tabs row -->
+            <div class="wvb-controls">
+              <div class="wvb-tabs">
+                <button class="btn wvb-tab-btn active" data-tab="videos"
+                  onclick="_setActiveTab('videos'); _loadChannelVideos(document.getElementById('wvb-channel-name').dataset.url, 'week', 'videos')"
+                  data-i18n="watch_tab_videos">Videos</button>
+                <button class="btn wvb-tab-btn" data-tab="shorts"
+                  onclick="_setActiveTab('shorts'); _loadChannelVideos(document.getElementById('wvb-channel-name').dataset.url, 'week', 'shorts')"
+                  data-i18n="watch_tab_shorts">Shorts</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spinner -->
+          <div id="wvb-spinner" class="wvb-spinner" style="display:none;">
+            <div class="wvb-spin-circle"></div>
+            <div id="wvb-spinner-text" class="wvb-spinner-text"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="wvb-empty" class="queue-empty" style="display:none;"></div>
+
+          <!-- Video grid -->
+          <div class="wvb-grid" id="wvb-grid"></div>
+
+        </div>
+
+      </section>
+
       <!-- ── SETTINGS ── -->
       <section class="page" id="page-settings">
-        <div class="settings-grid">
+        <div class="settings-panels">
 
-          <div class="settings-card">
-            <div class="settings-card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              <span data-i18n="settings_downloads">Downloads</span>
-            </div>
-            <div class="setting-row">
-              <label class="input-label" data-i18n="save_folder">Save folder</label>
-              <div style="display:flex;gap:8px;">
-                <input class="input" id="save-folder" placeholder="~/Downloads/Grabbit" readonly style="cursor:pointer;font-size:0.82rem;" />
-                <button class="btn btn-ghost btn-sm" id="browse-btn" data-i18n="btn_browse">Browse</button>
-              </div>
-            </div>
-            <div class="setting-row">
-              <label class="input-label" data-i18n="default_quality">Default quality</label>
-              <select class="input" id="default-quality" style="font-size:0.88rem;">
-                <option value="best" data-i18n="quality_best">Best available</option>
-                <option value="1080">1080p</option>
-                <option value="720">720p</option>
-                <option value="480">480p</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <label class="input-label" data-i18n="default_format">Default format</label>
-              <select class="input" id="default-format" style="font-size:0.88rem;">
-                <option value="video+audio" data-i18n="format_video_audio">Video + Audio (MP4)</option>
-                <option value="audio" data-i18n="format_audio">Audio only (MP3)</option>
-                <option value="video" data-i18n="format_video">Video only (MP4)</option>
-              </select>
-            </div>
-          </div>
+          <!-- Col 1: Video + About -->
+          <div class="settings-col">
 
-          <div class="settings-card">
-            <div class="settings-card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-              </svg>
-              <span data-i18n="settings_appearance">Appearance</span>
-            </div>
-            <div class="setting-row">
-              <label class="input-label" data-i18n="theme_label">Theme</label>
-              <div class="theme-grid">
-                <div class="theme-option active" data-theme-set="dark">🌙 Dark</div>
-                <div class="theme-option" data-theme-set="light">☀️ Light</div>
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                <span data-i18n="settings_video">Video</span>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="default_quality">Default quality</span></label>
+                  <span class="setting-desc" data-i18n="default_quality_desc">The resolution Grabbit will aim for. You can always change it per download.</span>
+                </div>
+                <select class="input" id="default-quality" style="font-size:0.88rem;">
+                  <option value="best">Best available</option>
+                  <option value="2160">4K (2160p)</option>
+                  <option value="1440">1440p</option>
+                  <option value="1080">1080p</option>
+                  <option value="720">720p</option>
+                  <option value="480">480p</option>
+                  <option value="360">360p</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="video_codec">Video codec</span></label>
+                  <span class="setting-desc" data-i18n="video_codec_desc">H264 works on every device. H265 produces files up to 50% smaller at the same quality, but some older players can't open it.</span>
+                </div>
+                <select class="input" id="video-codec" style="font-size:0.88rem;">
+                  <option value="h264">H264 — Universal (recommended)</option>
+                  <option value="h265">H265 — Smaller files, less compatible</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="video_container">Container format</span></label>
+                  <span class="setting-desc" data-i18n="video_container_desc">MP4 opens everywhere. MKV supports subtitles and multiple audio tracks but not all apps can play it.</span>
+                </div>
+                <select class="input" id="video-container" style="font-size:0.88rem;">
+                  <option value="mp4">MP4 — Works everywhere (recommended)</option>
+                  <option value="mkv">MKV — Supports subtitles &amp; multi-audio</option>
+                  <option value="webm">WebM — Optimized for web browsers</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="default_format">Default format</span></label>
+                  <span class="setting-desc" data-i18n="default_format_desc">Whether to download video with audio, audio only, or silent video by default.</span>
+                </div>
+                <select class="input" id="default-format" style="font-size:0.88rem;">
+                  <option value="video+audio">Video + Audio</option>
+                  <option value="audio">Audio only</option>
+                  <option value="video">Video only (no audio)</option>
+                </select>
               </div>
             </div>
-            <div class="setting-row" style="margin-top:14px;">
-              <label class="input-label" data-i18n="premium_themes">Premium themes</label>
-              <div class="theme-grid">
-                <div class="theme-option-premium" data-theme-set="ocean"><span>🌊 Ocean</span><span class="premium-tag">Pro</span></div>
-                <div class="theme-option-premium" data-theme-set="forest"><span>🌿 Forest</span><span class="premium-tag">Pro</span></div>
-                <div class="theme-option-premium" data-theme-set="ember"><span>🔥 Ember</span><span class="premium-tag">Pro</span></div>
-                <div class="theme-option-premium" data-theme-set="rose"><span>🌸 Rose</span><span class="premium-tag">Pro</span></div>
-              </div>
-            </div>
-          </div>
 
-          <div class="settings-card">
-            <div class="settings-card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-              <span data-i18n="settings_language">Language</span>
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span data-i18n="settings_about">About</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;">
+                  <span style="color:var(--gray);"><span data-i18n="grabbit_version">Grabbit version</span></span>
+                  <span id="app-version" style="color:var(--secondary);font-weight:600;">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;">
+                  <span style="color:var(--gray);"><span data-i18n="downloads_today">Downloads today</span></span>
+                  <span id="about-limit-count" style="color:var(--secondary);font-weight:500;">—</span>
+                </div>
+              </div>
             </div>
-            <div class="setting-row">
-              <select class="input" id="lang-select" style="font-size:0.88rem;">
-                <option value="es">🇲🇽 Español</option>
-                <option value="en" selected>🇺🇸 English</option>
-                <option value="pt">🇧🇷 Português</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="settings-card">
-            <div class="settings-card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <span data-i18n="settings_about">About</span>
+          </div><!-- /col 1 -->
+
+          <!-- Col 2: Audio + Tools -->
+          <div class="settings-col">
+
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <span data-i18n="settings_audio">Audio</span>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="audio_format">Audio format</span></label>
+                  <span class="setting-desc" data-i18n="audio_format_desc">The file format when downloading audio only. MP3 is universal. AAC has better quality at the same size. Opus is the most efficient. FLAC is lossless — perfect quality, large files.</span>
+                </div>
+                <select class="input" id="audio-format" style="font-size:0.88rem;">
+                  <option value="mp3">MP3 — Universal, good quality</option>
+                  <option value="aac">AAC — Better quality than MP3</option>
+                  <option value="opus">Opus — Most efficient, modern</option>
+                  <option value="flac">FLAC — Lossless, large files</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="audio_bitrate">Audio bitrate</span></label>
+                  <span class="setting-desc" data-i18n="audio_bitrate_desc">Higher = better quality, larger file. 128 kbps is fine for casual listening. 320 kbps is the highest quality for MP3.</span>
+                </div>
+                <select class="input" id="audio-bitrate" style="font-size:0.88rem;">
+                  <option value="128">128 kbps — Standard</option>
+                  <option value="192">192 kbps — Good</option>
+                  <option value="256">256 kbps — High</option>
+                  <option value="320">320 kbps — Maximum</option>
+                </select>
+              </div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                <span style="color:var(--text-muted);" data-i18n="version">Version</span>
-                <span id="app-version" style="color:var(--text-primary);font-weight:500;">—</span>
+
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                <span data-i18n="settings_tools">Tools</span>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                <span style="color:var(--text-muted);">yt-dlp</span>
-                <span id="ytdlp-status" style="font-weight:500;">...</span>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label" data-i18n="ytdlp_label">Download engine</label>
+                  <span class="setting-desc" data-i18n="ytdlp_desc">Core component that handles all downloads. Stays updated automatically so platforms always work.</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span id="ytdlp-status" style="font-size:0.82rem;font-weight:500;">...</span>
+                  <button class="btn btn-ghost btn-sm" id="update-ytdlp-btn" data-i18n="btn_update">Update</button>
+                </div>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                <span style="color:var(--text-muted);">FFmpeg</span>
-                <span id="ffmpeg-status" style="font-weight:500;">...</span>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label" data-i18n="ffmpeg_label">Video processor</label>
+                  <span class="setting-desc" data-i18n="ffmpeg_desc">Processes files — merges video and audio, converts formats, and trims clips.</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <span id="ffmpeg-status" style="font-size:0.82rem;font-weight:500;">...</span>
+                  <button class="btn btn-ghost btn-sm" id="update-ffmpeg-btn" data-i18n="btn_update">Update</button>
+                </div>
               </div>
-              <div style="display:flex;gap:8px;margin-top:6px;">
-                <button class="btn btn-ghost btn-sm" id="update-ytdlp-btn" style="flex:1;" data-i18n="btn_update_ytdlp">Update yt-dlp</button>
-                <button class="btn btn-ghost btn-sm" id="update-ffmpeg-btn" style="flex:1;" data-i18n="btn_update_ffmpeg">Update FFmpeg</button>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label" data-i18n="deno_label">System component</label>
+                  <span class="setting-desc" data-i18n="deno_desc">Component required to support some platforms. Grabbit manages this automatically.</span>
+                </div>
+                <span id="deno-status" style="font-size:0.82rem;font-weight:500;">...</span>
+              </div>
+              <div class="setting-row" style="border-top:1px solid var(--button-stroke);padding-top:12px;margin-top:4px;">
+                <button class="btn btn-ghost btn-sm" id="engine-check-btn" style="width:100%;justify-content:center;" onclick="engineCheckNow()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.07-8.5"/>
+                  </svg>
+                  <span data-i18n="engine_check_now">Check for updates</span>
+                </button>
               </div>
             </div>
-          </div>
+
+          </div><!-- /col 2 -->
+
+          <!-- Col 3: Downloads + Appearance -->
+          <div class="settings-col">
+
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span data-i18n="settings_downloads">Downloads</span>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="save_folder">Save folder</span></label>
+                  <span class="setting-desc" data-i18n="save_folder_desc">Where your downloaded files will be saved on your computer.</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <input class="input" id="save-folder" placeholder="~/Downloads/Grabbit" readonly style="cursor:pointer;font-size:0.82rem;" />
+                  <button class="btn btn-ghost btn-sm" id="browse-btn">Browse</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="filename_style">Filename style</span></label>
+                  <span class="setting-desc" data-i18n="filename_style_desc">How downloaded files get named. Basic is just the title. Pretty adds the channel name. Nerdy adds date and resolution.</span>
+                </div>
+                <select class="input" id="filename-style" style="font-size:0.88rem;">
+                  <option value="basic">Basic — Video title</option>
+                  <option value="pretty">Pretty — Channel · Title</option>
+                  <option value="nerdy">Nerdy — Date · Title · Resolution</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div class="settings-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span data-i18n="settings_appearance">Appearance</span>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="theme_label">Theme</span></label>
+                  <span class="setting-desc" data-i18n="theme_label_desc">Switch between dark and light mode.</span>
+                </div>
+                <div class="theme-grid">
+                  <div class="theme-option active" data-theme-set="dark">Dark</div>
+                  <div class="theme-option" data-theme-set="light">Light</div>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label">Premium themes <span style="color:var(--gray);font-size:0.62rem;font-weight:400;">— Pro only</span></label>
+                  <span class="setting-desc" data-i18n="premium_themes_desc">Exclusive themes unlocked with a Pro license.</span>
+                </div>
+                <div class="theme-grid">
+                  <div class="theme-option-premium" data-theme-set="ocean"><span>Ocean</span><span class="premium-tag">Pro</span></div>
+                  <div class="theme-option-premium" data-theme-set="forest"><span>Forest</span><span class="premium-tag">Pro</span></div>
+                  <div class="theme-option-premium" data-theme-set="ember"><span>Ember</span><span class="premium-tag">Pro</span></div>
+                  <div class="theme-option-premium" data-theme-set="rose"><span>Rose</span><span class="premium-tag">Pro</span></div>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-label-group">
+                  <label class="input-label"><span data-i18n="language_label">Language</span></label>
+                  <span class="setting-desc" data-i18n="language_label_desc">The language used throughout the app.</span>
+                </div>
+                <select class="input" id="lang-select" style="font-size:0.88rem;">
+                  <option value="es">Español</option>
+                  <option value="en" selected>English</option>
+                  <option value="pt">Português</option>
+                </select>
+              </div>
+            </div>
+
+          </div><!-- /col 3 -->
 
         </div>
       </section>
@@ -449,42 +893,49 @@
             <div style="display:flex;flex-direction:column;gap:12px;">
               <div class="card" id="license-details-card" style="display:none;">
                 <div class="settings-card-title" style="margin-bottom:14px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--secondary);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                   License details
                 </div>
                 <div style="display:flex;flex-direction:column;gap:10px;">
-                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-muted);">Email</span>
-                    <span id="lic-email" style="color:var(--text-primary);font-weight:500;"></span>
+                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--button-stroke);">
+                    <span style="color:var(--gray);">Email</span>
+                    <span id="lic-email" style="color:var(--secondary);font-weight:500;"></span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-muted);">License code</span>
-                    <span id="lic-code" style="color:var(--text-primary);font-weight:500;font-family:monospace;font-size:0.78rem;"></span>
+                  <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--button-stroke);">
+                    <span style="color:var(--gray);">License code</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span id="lic-code" style="color:var(--secondary);font-weight:500;font-family:monospace;font-size:0.78rem;">••••-••••-••••-••••</span>
+                      <button id="lic-code-toggle" onclick="toggleLicCode()" style="background:none;border:none;cursor:pointer;color:var(--gray);padding:2px;display:flex;align-items:center;" title="Show/hide code">
+                        <svg id="lic-eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-muted);">Plan</span>
-                    <span id="lic-plan" style="color:#22c55e;font-weight:600;text-transform:capitalize;"></span>
+                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--button-stroke);">
+                    <span style="color:var(--gray);">Plan</span>
+                    <span id="lic-plan" style="color:var(--green);font-weight:600;text-transform:capitalize;"></span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-muted);">Days remaining</span>
+                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--button-stroke);">
+                    <span style="color:var(--gray);">Days remaining</span>
                     <span id="lic-days" style="font-weight:700;font-size:1rem;"></span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-muted);">Activated on</span>
-                    <span id="lic-created" style="color:var(--text-primary);font-weight:500;"></span>
+                  <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-bottom:8px;border-bottom:1px solid var(--button-stroke);">
+                    <span style="color:var(--gray);">Activated on</span>
+                    <span id="lic-created" style="color:var(--secondary);font-weight:500;"></span>
                   </div>
                   <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                    <span style="color:var(--text-muted);">Last renewed</span>
-                    <span id="lic-renewed" style="color:var(--text-primary);font-weight:500;"></span>
+                    <span style="color:var(--gray);">Last renewed</span>
+                    <span id="lic-renewed" style="color:var(--secondary);font-weight:500;"></span>
                   </div>
                 </div>
                 <div style="margin-top:16px;">
-                  <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--gray);margin-bottom:6px;">
                     <span>License progress</span>
                     <span id="lic-bar-label"></span>
                   </div>
-                  <div style="height:6px;background:var(--progress-track);border-radius:99px;overflow:hidden;">
-                    <div id="lic-bar" style="height:100%;background:var(--accent);border-radius:99px;transition:width 0.5s ease;width:100%;"></div>
+                  <div style="height:6px;background:var(--button-hover);border-radius:99px;overflow:hidden;">
+                    <div id="lic-bar" style="height:100%;background:var(--secondary);border-radius:99px;transition:width 0.5s ease;width:100%;"></div>
                   </div>
                 </div>
                 <div style="margin-top:14px;display:flex;gap:8px;">
@@ -493,15 +944,53 @@
                 </div>
               </div>
 
-              <div class="card" id="activate-card">
+              <!-- Trial active card (shown when trial is running) -->
+              <div class="card" id="trial-active-card" style="display:none;">
                 <div class="settings-card-title" style="margin-bottom:14px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent);"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                  Activate license
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--green);"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span style="color:var(--green);">Free trial — Active</span>
                 </div>
-                <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">Enter your activation code below.</p>
+                <div style="font-size:0.85rem;color:var(--gray);margin-bottom:12px;">
+                  Full Pro access until your trial ends.
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:14px;">
+                  <span id="trial-hours-left" style="font-family:var(--font);font-size:2rem;font-weight:800;color:var(--secondary);">72</span>
+                  <span style="font-size:0.8rem;color:var(--gray);">hours remaining</span>
+                </div>
+                <div style="height:6px;background:var(--button-hover);border-radius:99px;overflow:hidden;margin-bottom:16px;">
+                  <div id="trial-bar" style="height:100%;background:var(--green);border-radius:99px;transition:width 0.5s ease;width:100%;"></div>
+                </div>
+                <button class="btn btn-primary" id="trial-upgrade-btn" style="width:100%;justify-content:center;">Upgrade to Pro — Keep all features →</button>
+              </div>
+
+              <div class="card" id="activate-card">
+                <!-- Trial start section (shown when no trial exists) -->
+                <div id="trial-start-section">
+                  <div class="settings-card-title" style="margin-bottom:8px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--secondary);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    3-day free trial
+                  </div>
+                  <p style="font-size:0.82rem;color:var(--gray);margin-bottom:12px;">Full Pro access — no credit card needed.</p>
+                  <div class="activate-form">
+                    <input class="input" id="trial-email-input" type="email" placeholder="your@email.com" />
+                    <button class="btn btn-primary" id="trial-start-btn">Start free trial</button>
+                  </div>
+                  <div id="trial-msg" style="font-size:0.8rem;margin-top:10px;display:none;"></div>
+                  <div style="border-top:1px solid var(--button-stroke);margin:16px 0;"></div>
+                </div>
+
+                <!-- Trial expired notice (shown when trial ran out) -->
+                <div id="trial-expired-section" style="display:none;">
+                  <p style="font-size:0.82rem;color:var(--red);font-weight:600;margin-bottom:14px;">Your 3-day trial has ended. Upgrade to Pro to keep all features.</p>
+                  <div style="border-top:1px solid var(--button-stroke);margin-bottom:16px;"></div>
+                </div>
+
+                <div class="settings-card-title" style="margin-bottom:10px;font-size:0.78rem;color:var(--gray);font-weight:500;">
+                  Have a license key?
+                </div>
                 <div class="activate-form">
                   <input class="input" id="license-input" placeholder="GRAB-XXXX-XXXX-XXXX" maxlength="19" />
-                  <button class="btn btn-primary" id="activate-btn">Activate</button>
+                  <button class="btn btn-ghost" id="activate-btn">Activate</button>
                 </div>
                 <div id="activate-msg" style="font-size:0.8rem;margin-top:10px;display:none;"></div>
               </div>
@@ -511,62 +1000,64 @@
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start;min-width:0;">
 
               <!-- Free -->
-              <div class="card" style="padding:16px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                  <div style="font-family:var(--font-display);font-weight:700;font-size:0.95rem;color:var(--text-primary);">Free</div>
-                  <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--text-primary);">$0</div>
+              <div class="card" style="padding:0;overflow:hidden;">
+                <div class="plan-card-header">
+                  <span style="font-weight:700;font-size:0.9rem;">Free</span>
+                  <span style="font-size:1.2rem;font-weight:800;">$0</span>
                 </div>
-                <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:5px;">
-                  <li style="color:var(--text-secondary);">✓ 2 downloads / day</li>
-                  <li style="color:var(--text-secondary);">✓ Up to 720p</li>
-                  <li style="color:var(--text-secondary);">✓ YouTube &amp; TikTok</li>
-                  <li style="color:var(--text-muted);opacity:0.5;">✗ All platforms</li>
-                  <li style="color:var(--text-muted);opacity:0.5;">✗ Segment download</li>
-                  <li style="color:var(--text-muted);opacity:0.5;">✗ Premium themes</li>
-                </ul>
+                <div style="padding:14px 16px;">
+                  <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:7px;">
+                    <li style="color:var(--secondary);">✓ 2 downloads / day</li>
+                    <li style="color:var(--secondary);">✓ All 8 platforms</li>
+                    <li style="color:var(--secondary);">✓ Video, Audio &amp; Transcript</li>
+                    <li style="color:var(--secondary);">✓ Watch (channel browser)</li>
+                    <li style="color:var(--secondary);">✓ Download library</li>
+                    <li style="color:var(--gray);opacity:0.5;">✗ Batch downloads</li>
+                    <li style="color:var(--gray);opacity:0.5;">✗ Segment clips</li>
+                    <li style="color:var(--gray);opacity:0.5;">✗ Premium themes</li>
+                  </ul>
+                </div>
               </div>
 
               <!-- Pro Monthly -->
-              <div class="card" style="padding:16px;border:1.5px solid var(--accent);background:var(--accent-subtle);">
-                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;">
-                  <div style="font-family:var(--font-display);font-weight:700;font-size:0.95rem;color:var(--accent);">Pro</div>
-                  <div style="display:flex;align-items:baseline;gap:3px;">
-                    <span style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--accent);">$8.99</span>
-                    <span style="font-size:0.75rem;color:var(--text-muted);">/month</span>
-                  </div>
+              <div class="card" style="padding:0;overflow:hidden;">
+                <div class="plan-card-header">
+                  <span style="font-weight:700;font-size:0.9rem;">Pro</span>
+                  <span style="font-size:1.2rem;font-weight:800;">$8.99 <span style="font-size:0.72rem;font-weight:400;color:var(--gray);">/month</span></span>
                 </div>
-                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:10px;">Billed monthly · Cancel anytime</div>
-                <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:5px;margin-bottom:14px;">
-                  <li style="color:var(--text-secondary);">✓ Unlimited downloads</li>
-                  <li style="color:var(--text-secondary);">✓ Up to 4K / 8K</li>
-                  <li style="color:var(--text-secondary);">✓ All 8+ platforms</li>
-                  <li style="color:var(--text-secondary);">✓ Segment download</li>
-                  <li style="color:var(--text-secondary);">✓ All premium themes</li>
-                  <li style="color:var(--text-secondary);">✓ Priority support</li>
-                </ul>
-                <button class="btn btn-primary btn-sm get-pro-btn" id="get-pro-btn" style="width:100%;justify-content:center;">Get Pro monthly →</button>
+                <div style="padding:14px 16px;">
+                  <div style="font-size:0.7rem;color:var(--gray);margin-bottom:10px;">Billed monthly · Cancel anytime</div>
+                  <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+                    <li style="color:var(--secondary);">✓ Unlimited downloads</li>
+                    <li style="color:var(--secondary);">✓ Batch mode (up to 50 links)</li>
+                    <li style="color:var(--secondary);">✓ Segment clips (cut any part)</li>
+                    <li style="color:var(--secondary);">✓ Premium themes</li>
+                    <li style="color:var(--secondary);">✓ All Free features</li>
+                    <li style="color:var(--secondary);">✓ Priority support</li>
+                  </ul>
+                  <button class="btn btn-primary btn-sm get-pro-btn" id="get-pro-btn" style="width:100%;justify-content:center;">Get Pro monthly →</button>
+                </div>
               </div>
 
               <!-- Pro Annual -->
-              <div class="card" style="padding:16px;border:1.5px solid rgba(124,58,237,0.5);background:rgba(124,58,237,0.06);position:relative;">
-                <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;font-size:0.62rem;font-weight:700;padding:2px 12px;border-radius:99px;white-space:nowrap;">BEST VALUE</div>
-                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;">
-                  <div style="font-family:var(--font-display);font-weight:700;font-size:0.95rem;color:#a78bfa;">Pro Annual</div>
-                  <div style="display:flex;align-items:baseline;gap:3px;">
-                    <span style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:#a78bfa;">$59.99</span>
-                    <span style="font-size:0.75rem;color:var(--text-muted);">/year</span>
-                  </div>
+              <div class="card" style="padding:0;overflow:hidden;position:relative;">
+                <div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--secondary);color:var(--primary);font-size:0.58rem;font-weight:700;padding:2px 10px;border-radius:0 0 6px 6px;white-space:nowrap;letter-spacing:0.08em;z-index:1;">BEST VALUE</div>
+                <div class="plan-card-header">
+                  <span style="font-weight:700;font-size:0.9rem;">Pro Annual</span>
+                  <span style="font-size:1.2rem;font-weight:800;">$59.99 <span style="font-size:0.72rem;font-weight:400;color:var(--gray);">/year</span></span>
                 </div>
-                <div style="font-size:0.7rem;color:#22c55e;font-weight:600;margin-bottom:10px;">Save 44% — $5/mo effective</div>
-                <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:5px;margin-bottom:14px;">
-                  <li style="color:var(--text-secondary);">✓ Everything in Pro monthly</li>
-                  <li style="color:var(--text-secondary);">✓ Pay once, valid 365 days</li>
-                  <li style="color:var(--text-secondary);">✓ Unlimited downloads</li>
-                  <li style="color:var(--text-secondary);">✓ Up to 4K / 8K</li>
-                  <li style="color:var(--text-secondary);">✓ All 8+ platforms</li>
-                  <li style="color:var(--text-secondary);">✓ Priority support</li>
-                </ul>
-                <button class="btn btn-primary btn-sm get-pro-btn" id="get-pro-annual-btn" style="width:100%;justify-content:center;background:#7c3aed;box-shadow:0 4px 14px rgba(124,58,237,0.3);">Get Pro annual →</button>
+                <div style="padding:14px 16px;">
+                  <div style="font-size:0.7rem;color:var(--gray);font-weight:600;margin-bottom:10px;">Save 44% — $5/mo effective</div>
+                  <ul style="list-style:none;font-size:0.82rem;display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+                    <li style="color:var(--secondary);">✓ Everything in Pro monthly</li>
+                    <li style="color:var(--secondary);">✓ Unlimited downloads</li>
+                    <li style="color:var(--secondary);">✓ Batch mode (up to 50 links)</li>
+                    <li style="color:var(--secondary);">✓ Segment clips</li>
+                    <li style="color:var(--secondary);">✓ Premium themes</li>
+                    <li style="color:var(--secondary);">✓ Pay once, valid 365 days</li>
+                  </ul>
+                  <button class="btn btn-primary btn-sm get-pro-btn" id="get-pro-annual-btn" style="width:100%;justify-content:center;">Get Pro annual →</button>
+                </div>
               </div>
 
             </div><!-- /right plans -->
@@ -581,34 +1072,63 @@
 </div>
 
 <!-- ── First-run splash — shown while tools download ── -->
-<div id="setup-splash" style="display:none;position:fixed;inset:0;z-index:99999;background:var(--bg-base);flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+<div id="setup-splash" style="display:none;position:fixed;inset:0;z-index:99999;background:var(--primary);flex-direction:column;align-items:center;justify-content:center;gap:24px;">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-    <div style="width:44px;height:44px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--accent-glow);">
+    <div style="width:44px;height:44px;background:var(--secondary);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px transparent;">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </div>
-    <span style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--text-primary);">Grabbit</span>
+    <span style="font-family:var(--font);font-size:1.6rem;font-weight:700;color:var(--secondary);">Grabbit</span>
   </div>
   <div style="text-align:center;">
-    <div style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;" id="splash-title">Setting up for the first time...</div>
-    <div style="font-size:0.85rem;color:var(--text-muted);" id="splash-sub">Downloading yt-dlp and FFmpeg. This only happens once.</div>
+    <div style="font-size:1rem;font-weight:600;color:var(--secondary);margin-bottom:6px;" id="splash-title" data-i18n="splash_title">Setting up for the first time...</div>
+    <div style="font-size:0.85rem;color:var(--gray);" id="splash-sub" data-i18n="splash_sub">Downloading required components. This only happens once.</div>
   </div>
-  <div style="width:280px;height:4px;background:var(--progress-track);border-radius:99px;overflow:hidden;">
-    <div id="splash-bar" style="height:100%;background:var(--accent);border-radius:99px;width:10%;transition:width 1s ease;box-shadow:0 0 8px var(--accent-glow);"></div>
+  <div style="width:280px;height:4px;background:var(--button-hover);border-radius:99px;overflow:hidden;">
+    <div id="splash-bar" style="height:100%;background:var(--secondary);border-radius:99px;width:10%;transition:width 1s ease;box-shadow:0 0 8px transparent;"></div>
   </div>
   <div style="display:flex;gap:24px;font-size:0.8rem;">
-    <span id="splash-ytdlp" style="color:var(--text-muted);">⟳ yt-dlp</span>
-    <span id="splash-ffmpeg" style="color:var(--text-muted);">⟳ FFmpeg</span>
+    <span id="splash-ytdlp" style="color:var(--gray);" data-i18n="splash_engine">⟳ Download engine</span>
+    <span id="splash-ffmpeg" style="color:var(--gray);" data-i18n="splash_processor">⟳ Video processor</span>
+  </div>
+</div>
+
+<!-- ── Onboarding modal — blocks UI until trial activated ── -->
+<div id="onboarding-modal" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="background:var(--button-elevated);border:1px solid var(--button-stroke);border-radius:24px;padding:40px 36px;max-width:420px;width:92%;box-shadow:0 24px 80px rgba(0,0,0,0.6);text-align:center;">
+    <div style="width:52px;height:52px;background:var(--secondary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 24px transparent;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </div>
+    <div style="font-family:var(--font);font-size:1.5rem;font-weight:800;color:var(--secondary);margin-bottom:8px;">Welcome to Grabbit</div>
+    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:6px;">Start your <strong style="color:var(--secondary);">3-day free trial</strong> — full Pro access.</div>
+    <div style="font-size:0.8rem;color:var(--gray);margin-bottom:28px;">No credit card needed. Cancel anytime.</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <input id="onboarding-email" type="email" class="input" placeholder="your@email.com" style="text-align:center;font-size:0.95rem;" />
+      <button id="onboarding-btn" class="btn btn-primary" style="justify-content:center;font-size:0.95rem;padding:12px;">
+        Start free trial — 3 days Pro
+      </button>
+    </div>
+    <div id="onboarding-msg" style="font-size:0.8rem;min-height:18px;color:var(--red);"></div>
+
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--button-stroke);">
+      <div style="font-size:0.75rem;color:var(--gray);margin-bottom:10px;">Already have a license key?</div>
+      <div style="display:flex;gap:8px;">
+        <input id="onboarding-license-input" class="input" placeholder="GRAB-XXXX-XXXX-XXXX" maxlength="19" style="font-size:0.82rem;" />
+        <button id="onboarding-license-btn" class="btn btn-ghost" style="white-space:nowrap;">Activate</button>
+      </div>
+      <div id="onboarding-license-msg" style="font-size:0.78rem;min-height:16px;margin-top:6px;color:var(--red);"></div>
+    </div>
   </div>
 </div>
 
 <!-- ── Custom confirm modal ── -->
 <div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-    <div style="width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <div style="background:var(--button-elevated);border:1px solid var(--button-stroke);border-radius:20px;padding:32px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="width:44px;height:44px;border-radius:12px;background:var(--red-subtle, rgba(237,34,54,0.1));display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </div>
-    <div id="confirm-title" style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;"></div>
-    <div id="confirm-msg" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;"></div>
+    <div id="confirm-title" style="font-family:var(--font);font-size:1rem;font-weight:700;color:var(--secondary);margin-bottom:8px;"></div>
+    <div id="confirm-msg" style="font-size:0.85rem;color:var(--gray);line-height:1.6;margin-bottom:24px;"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <button id="confirm-cancel" class="btn btn-ghost">Cancel</button>
       <button id="confirm-ok" class="btn btn-danger">Confirm</button>
@@ -622,6 +1142,7 @@
 <script src="/static/js/download.js"></script>
 <script src="/static/js/queue.js"></script>
 <script src="/static/js/library.js"></script>
+<script src="/static/js/watchlist.js"></script>
 <script src="/static/js/license.js"></script>
 
 <script>
