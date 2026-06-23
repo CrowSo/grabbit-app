@@ -944,47 +944,7 @@
                 </div>
               </div>
 
-              <!-- Trial active card (shown when trial is running) -->
-              <div class="card" id="trial-active-card" style="display:none;">
-                <div class="settings-card-title" style="margin-bottom:14px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--green);"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span style="color:var(--green);">Free trial — Active</span>
-                </div>
-                <div style="font-size:0.85rem;color:var(--gray);margin-bottom:12px;">
-                  Full Pro access until your trial ends.
-                </div>
-                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:14px;">
-                  <span id="trial-hours-left" style="font-family:var(--font);font-size:2rem;font-weight:800;color:var(--secondary);">72</span>
-                  <span style="font-size:0.8rem;color:var(--gray);">hours remaining</span>
-                </div>
-                <div style="height:6px;background:var(--button-hover);border-radius:99px;overflow:hidden;margin-bottom:16px;">
-                  <div id="trial-bar" style="height:100%;background:var(--green);border-radius:99px;transition:width 0.5s ease;width:100%;"></div>
-                </div>
-                <button class="btn btn-primary" id="trial-upgrade-btn" style="width:100%;justify-content:center;">Upgrade to Pro — Keep all features →</button>
-              </div>
-
               <div class="card" id="activate-card">
-                <!-- Trial start section (shown when no trial exists) -->
-                <div id="trial-start-section">
-                  <div class="settings-card-title" style="margin-bottom:8px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--secondary);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    3-day free trial
-                  </div>
-                  <p style="font-size:0.82rem;color:var(--gray);margin-bottom:12px;">Full Pro access — no credit card needed.</p>
-                  <div class="activate-form">
-                    <input class="input" id="trial-email-input" type="email" placeholder="your@email.com" />
-                    <button class="btn btn-primary" id="trial-start-btn">Start free trial</button>
-                  </div>
-                  <div id="trial-msg" style="font-size:0.8rem;margin-top:10px;display:none;"></div>
-                  <div style="border-top:1px solid var(--button-stroke);margin:16px 0;"></div>
-                </div>
-
-                <!-- Trial expired notice (shown when trial ran out) -->
-                <div id="trial-expired-section" style="display:none;">
-                  <p style="font-size:0.82rem;color:var(--red);font-weight:600;margin-bottom:14px;">Your 3-day trial has ended. Upgrade to Pro to keep all features.</p>
-                  <div style="border-top:1px solid var(--button-stroke);margin-bottom:16px;"></div>
-                </div>
-
                 <div class="settings-card-title" style="margin-bottom:10px;font-size:0.78rem;color:var(--gray);font-weight:500;">
                   Have a license key?
                 </div>
@@ -1089,35 +1049,6 @@
   <div style="display:flex;gap:24px;font-size:0.8rem;">
     <span id="splash-ytdlp" style="color:var(--gray);" data-i18n="splash_engine">⟳ Download engine</span>
     <span id="splash-ffmpeg" style="color:var(--gray);" data-i18n="splash_processor">⟳ Video processor</span>
-  </div>
-</div>
-
-<!-- ── Onboarding modal — blocks UI until trial activated ── -->
-<div id="onboarding-modal" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
-  <div style="background:var(--button-elevated);border:1px solid var(--button-stroke);border-radius:24px;padding:40px 36px;max-width:420px;width:92%;box-shadow:0 24px 80px rgba(0,0,0,0.6);text-align:center;">
-    <div style="width:52px;height:52px;background:var(--secondary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 24px transparent;">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    </div>
-    <div style="font-family:var(--font);font-size:1.5rem;font-weight:800;color:var(--secondary);margin-bottom:8px;">Welcome to Grabbit</div>
-    <div style="font-size:0.9rem;color:var(--gray);margin-bottom:6px;">Start your <strong style="color:var(--secondary);">3-day free trial</strong> — full Pro access.</div>
-    <div style="font-size:0.8rem;color:var(--gray);margin-bottom:28px;">No credit card needed. Cancel anytime.</div>
-
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-      <input id="onboarding-email" type="email" class="input" placeholder="your@email.com" style="text-align:center;font-size:0.95rem;" />
-      <button id="onboarding-btn" class="btn btn-primary" style="justify-content:center;font-size:0.95rem;padding:12px;">
-        Start free trial — 3 days Pro
-      </button>
-    </div>
-    <div id="onboarding-msg" style="font-size:0.8rem;min-height:18px;color:var(--red);"></div>
-
-    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--button-stroke);">
-      <div style="font-size:0.75rem;color:var(--gray);margin-bottom:10px;">Already have a license key?</div>
-      <div style="display:flex;gap:8px;">
-        <input id="onboarding-license-input" class="input" placeholder="GRAB-XXXX-XXXX-XXXX" maxlength="19" style="font-size:0.82rem;" />
-        <button id="onboarding-license-btn" class="btn btn-ghost" style="white-space:nowrap;">Activate</button>
-      </div>
-      <div id="onboarding-license-msg" style="font-size:0.78rem;min-height:16px;margin-top:6px;color:var(--red);"></div>
-    </div>
   </div>
 </div>
 

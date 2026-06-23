@@ -20,130 +20,32 @@ licenseInput?.addEventListener('input', () => {
   licenseInput.value = parts.join('-');
 });
 
-// ── Load saved license on start; if none, check trial ──────
+// ── Load saved license on start ─────────────────────────────
 const savedCode = localStorage.getItem('grabbit-license');
 if (savedCode) {
   verifyAndDisplay(savedCode, false);
 } else {
-  checkTrialStatus();
+  loadFreeUsage();
 }
 
-// ── Trial: check status on startup ────────────────────────
-async function checkTrialStatus() {
+// ── Free plan: show usage counters ────────────────────────
+async function loadFreeUsage() {
   try {
-    const res  = await fetch('/api/trial/status');
+    const res  = await fetch('/api/limits/status');
     const data = await res.json();
-    if (data.active) {
-      setTrialActive(data);
-    } else if (data.expired) {
-      setTrialExpired();
-    }
-    // no trial at all → show trial-start-section (default state)
-  } catch {
-    // server unreachable — keep default UI
-  }
-}
+    if (data.is_pro) return;
 
-// ── Trial: start ───────────────────────────────────────────
-document.getElementById('trial-start-btn')?.addEventListener('click', async () => {
-  const email = document.getElementById('trial-email-input')?.value.trim();
-  if (!email) return;
-  const btn = document.getElementById('trial-start-btn');
-  btn.disabled    = true;
-  btn.textContent = 'Starting...';
+    const singles    = data.limits.single     - data.singles_used;
+    const batches    = data.limits.batch      - data.batches_used;
+    const transcripts= data.limits.transcript - data.transcripts_used;
 
-  try {
-    const res  = await fetch('/api/trial/start', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email }),
-    });
-    const data = await res.json();
-
-    if (data.ok) {
-      setTrialActive({ hours_left: 72, trial_end: data.trial_end, active: true });
-      showTrialMsg('Trial activated! You have full Pro access for 3 days.', 'success');
-    } else {
-      const msgs = {
-        already_used_machine: 'This device already used a trial.',
-        already_used_email:   'This email already used a trial.',
-        invalid_email:        'Enter a valid email address.',
-        server_error:         'Could not reach server. Try again.',
-      };
-      showTrialMsg(msgs[data.error] || 'Could not start trial. Try again.', 'error');
-      btn.disabled    = false;
-      btn.textContent = 'Start free trial';
-    }
-  } catch {
-    showTrialMsg('Could not reach server. Check your connection.', 'error');
-    btn.disabled    = false;
-    btn.textContent = 'Start free trial';
-  }
-});
-
-// ── Trial: show active state ───────────────────────────────
-function setTrialActive(data) {
-  if (data.trial_end) localStorage.setItem('grabbit-trial-end', data.trial_end);
-  const hours = data.hours_left ?? 72;
-  const pct   = Math.max(4, Math.min(100, (hours / 72) * 100));
-
-  document.getElementById('trial-active-card').style.display    = 'block';
-  document.getElementById('activate-card').style.display        = 'block'; // keep visible so user can enter license code
-  document.getElementById('trial-start-section').style.display  = 'none'; // hide the "start trial" email form only
-  document.getElementById('license-details-card').style.display = 'none';
-
-  document.getElementById('trial-hours-left').textContent = hours;
-  document.getElementById('trial-bar').style.width        = `${pct}%`;
-  document.getElementById('trial-bar').style.background   = hours <= 12 ? 'var(--red)' : hours <= 24 ? 'var(--orange, #f59e0b)' : 'var(--green)';
-
-  document.getElementById('license-status').className         = 'license-status active';
-  document.getElementById('license-icon').className           = 'license-icon active';
-  document.getElementById('license-status-title').textContent = 'Free trial — Active';
-  document.getElementById('license-status-sub').textContent   = `${hours} hours of Pro access remaining`;
-  document.getElementById('license-days-wrap').style.display  = 'none';
-
-  licensePill.className   = 'status-pill done';
-  licensePill.textContent = 'Trial';
-
-  document.querySelectorAll('.get-pro-btn').forEach(btn => {
-    btn.textContent        = 'Upgrade to Pro →';
-    btn.style.opacity      = '1';
-    btn.style.pointerEvents = 'auto';
-    btn.style.cursor       = 'pointer';
-  });
-
-  if (window.syncDailyCounter) syncDailyCounter();
-}
-
-// ── Trial: show expired state ──────────────────────────────
-function setTrialExpired() {
-  document.getElementById('trial-start-section').style.display  = 'none';
-  document.getElementById('trial-expired-section').style.display = 'block';
-  document.getElementById('activate-card').style.display         = 'block';
-  document.getElementById('trial-active-card').style.display     = 'none';
-
-  document.getElementById('license-status').className         = 'license-status inactive';
-  document.getElementById('license-icon').className           = 'license-icon inactive';
-  document.getElementById('license-status-title').textContent = 'Trial ended';
-  document.getElementById('license-status-sub').textContent   = 'Upgrade to Pro to restore all features';
-  document.getElementById('license-days-wrap').style.display  = 'none';
-
-  licensePill.className   = 'status-pill error';
-  licensePill.textContent = 'Trial ended';
-}
-
-// ── Trial upgrade button ───────────────────────────────────
-document.getElementById('trial-upgrade-btn')?.addEventListener('click', () => {
-  window.open(LANDING_URL, '_blank');
-});
-
-function showTrialMsg(msg, type) {
-  const el = document.getElementById('trial-msg');
-  if (!el) return;
-  el.textContent   = msg;
-  el.style.display = 'block';
-  el.style.color   = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--gray)';
-  setTimeout(() => { el.style.display = 'none'; }, 6000);
+    document.getElementById('license-status').className         = 'license-status inactive';
+    document.getElementById('license-icon').className           = 'license-icon inactive';
+    document.getElementById('license-status-title').textContent = 'Free plan';
+    document.getElementById('license-status-sub').textContent   =
+      `${Math.max(0,singles)} downloads · ${Math.max(0,batches)} batch · ${Math.max(0,transcripts)} transcripts remaining`;
+    document.getElementById('license-days-wrap').style.display  = 'none';
+  } catch { /* keep default */ }
 }
 
 // ── Activate button ────────────────────────────────────────
@@ -257,8 +159,7 @@ function setLicenseActive(code, data, showMsg) {
 
   if (showMsg) showMessage('✓ License activated successfully', 'success');
 
-  fetch('/api/limits/reset', { method: 'POST' });
-  if (window.syncDailyCounter) syncDailyCounter();
+  if (window.syncDailyCounter) window.syncDailyCounter();
 }
 
 // ── Show inactive / free state ─────────────────────────────

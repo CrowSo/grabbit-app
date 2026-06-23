@@ -157,8 +157,8 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
   try {
     const res  = await fetch('/api/startup_ready');
     const data = await res.json();
-    if (data.ready) { initOnboarding(); return; }
-  } catch { initOnboarding(); return; }
+    if (data.ready) { return; }
+  } catch { return; }
 
   // Show splash
   splash.style.display = 'flex';
@@ -210,7 +210,6 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
           setTimeout(() => {
             splash.style.display = 'none';
             document.querySelector('.app-shell').style.visibility = 'visible';
-            initOnboarding();
           }, 400);
         }, 600);
       } else if (error) {
@@ -281,129 +280,9 @@ async function checkForUpdates() {
 // Check for updates 5s after load (give server time to check GitHub)
 setTimeout(checkForUpdates, 5000);
 
-// ── Trial / Pro helpers ────────────────────────────────────
-function isTrialActive() {
-  const end = localStorage.getItem('grabbit-trial-end');
-  if (!end) return false;
-  return new Date() < new Date(end);
-}
-
 window.isProOrTrial = function() {
-  return !!localStorage.getItem('grabbit-license') || isTrialActive();
+  return !!localStorage.getItem('grabbit-license');
 };
-
-// ── Onboarding modal ───────────────────────────────────────
-function needsOnboarding() {
-  return !localStorage.getItem('grabbit-license') && !isTrialActive();
-}
-
-function hideOnboarding() {
-  const modal = document.getElementById('onboarding-modal');
-  if (!modal) return;
-  modal.style.opacity    = '0';
-  modal.style.transition = 'opacity 0.3s ease';
-  setTimeout(() => { modal.style.display = 'none'; }, 300);
-  if (window.syncDailyCounter) syncDailyCounter();
-}
-
-async function initOnboarding() {
-  if (!needsOnboarding()) return;
-
-  const modal = document.getElementById('onboarding-modal');
-  if (!modal) return;
-  modal.style.display   = 'flex';
-  modal.style.opacity   = '0';
-  modal.style.transition = 'opacity 0.4s ease';
-  setTimeout(() => { modal.style.opacity = '1'; }, 50);
-
-  // Format license input
-  const licInput = document.getElementById('onboarding-license-input');
-  licInput?.addEventListener('input', () => {
-    let val = licInput.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    const parts = [];
-    if (val.length > 0)  parts.push(val.substring(0, 4));
-    if (val.length > 4)  parts.push(val.substring(4, 8));
-    if (val.length > 8)  parts.push(val.substring(8, 12));
-    if (val.length > 12) parts.push(val.substring(12, 16));
-    licInput.value = parts.join('-');
-  });
-
-  // Trial start
-  document.getElementById('onboarding-btn')?.addEventListener('click', async () => {
-    const email = document.getElementById('onboarding-email')?.value.trim();
-    const msg   = document.getElementById('onboarding-msg');
-    const btn   = document.getElementById('onboarding-btn');
-    if (!email || !email.includes('@')) {
-      msg.textContent = 'Enter a valid email address.';
-      return;
-    }
-    btn.disabled    = true;
-    btn.textContent = 'Starting trial...';
-    msg.textContent = '';
-    try {
-      const res  = await fetch('/api/trial/start', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        if (data.trial_end) localStorage.setItem('grabbit-trial-end', data.trial_end);
-        hideOnboarding();
-        if (window.showToast) window.showToast(t('toast_trial_ok'), 'success');
-        if (window.syncDailyCounter) window.syncDailyCounter();
-        // Refresh license page UI if it's open
-        if (window.checkTrialStatus) window.checkTrialStatus();
-      } else {
-        const msgs = {
-          already_used_machine: 'This device already used a trial.',
-          already_used_email:   'This email already used a trial.',
-          invalid_email:        'Enter a valid email address.',
-        };
-        msg.textContent = msgs[data.error] || 'Could not start trial. Try again.';
-        btn.disabled    = false;
-        btn.textContent = 'Start free trial — 3 days Pro';
-      }
-    } catch {
-      msg.textContent = 'Connection error. Is the app running?';
-      btn.disabled    = false;
-      btn.textContent = 'Start free trial — 3 days Pro';
-    }
-  });
-
-  // License activation from onboarding
-  document.getElementById('onboarding-license-btn')?.addEventListener('click', async () => {
-    const code = document.getElementById('onboarding-license-input')?.value.trim();
-    const msg  = document.getElementById('onboarding-license-msg');
-    const btn  = document.getElementById('onboarding-license-btn');
-    if (!code) return;
-    btn.disabled    = true;
-    btn.textContent = 'Checking...';
-    msg.textContent = '';
-    try {
-      const res  = await fetch('/api/license/verify', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-      const data = await res.json();
-      if (data.valid) {
-        localStorage.setItem('grabbit-license', code);
-        localStorage.setItem('grabbit-license-data', JSON.stringify(data));
-        hideOnboarding();
-        if (window.showToast) window.showToast(t('toast_license_ok'), 'success');
-        if (window.syncDailyCounter) window.syncDailyCounter();
-      } else {
-        msg.textContent = data.error || 'Invalid license key.';
-        msg.style.color = '#ef4444';
-        btn.disabled    = false;
-        btn.textContent = 'Activate';
-      }
-    } catch {
-      msg.textContent = 'Connection error.';
-      btn.disabled    = false;
-      btn.textContent = 'Activate';
-    }
-  });
-}
 
 // ── Init ───────────────────────────────────────────────────
 applyTheme(state.theme);

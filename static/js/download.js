@@ -186,31 +186,43 @@ fetchBtn.addEventListener('click', fetchInfo);
 urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchInfo(); });
 
 // ── Download limits — server is authoritative ──────────────
-const FREE_DAILY_LIMIT  = 2;
-const PRO_MULTI_LIMIT   = 50;  // Pro can batch up to 50 links
-const BATCH_FETCH_SIZE  = 3;   // fetch info 3 at a time to avoid overloading yt-dlp
+const PRO_MULTI_LIMIT  = 50;  // Pro can batch up to 50 links
+const FREE_BATCH_LIMIT = 10;  // Free: max 10 videos per batch use
+const BATCH_FETCH_SIZE = 3;   // fetch info 3 at a time to avoid overloading yt-dlp
+
+// One UUID per batch session — sent with every request in that batch
+let _currentBatchSessionId = null;
+
+function _newBatchSession() {
+  _currentBatchSessionId = crypto.randomUUID ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return _currentBatchSessionId;
+}
 
 function isPro() {
   return !!localStorage.getItem('grabbit-license');
 }
 
-async function syncDailyCounter() {
+async function syncLimitCounter() {
   try {
-    const code = localStorage.getItem('grabbit-license') || '';
-    const res  = await fetch(`/api/limits/status?license=${encodeURIComponent(code)}`);
+    const res  = await fetch('/api/limits/status');
     const data = await res.json();
-    updateDailyCounterUI(data.remaining, data.limit, data.is_pro);
 
-    // Update topbar license pill
     const pill = document.getElementById('license-pill');
     if (pill) {
+      pill.className   = data.is_pro ? 'status-pill done' : 'status-pill waiting';
+      pill.textContent = data.is_pro ? 'Pro' : 'Free';
+    }
+
+    const el = document.getElementById('daily-counter');
+    if (el) {
       if (data.is_pro) {
-        pill.className   = 'status-pill done';
-        const haslicense = !!localStorage.getItem('grabbit-license');
-        pill.textContent = haslicense ? 'Pro' : 'Trial';
+        el.style.display = 'none';
       } else {
-        pill.className   = 'status-pill waiting';
-        pill.textContent = 'Free';
+        const singlesLeft = Math.max(0, data.limits.single - data.singles_used);
+        el.style.display = 'inline';
+        el.textContent   = `${singlesLeft} downloads left`;
+        el.style.color   = singlesLeft <= 2 ? '#ef4444' : 'var(--gray)';
       }
     }
 
@@ -218,37 +230,34 @@ async function syncDailyCounter() {
   } catch { return null; }
 }
 
-function updateDailyCounterUI(remaining, limit, pro) {
-  const el = document.getElementById('daily-counter');
-  if (!el) return;
-  if (pro) {
-    // Pro or Trial: hide the counter entirely
-    el.style.display = 'none';
-    return;
-  }
-  el.style.display = 'inline';
-  el.textContent   = `${remaining}/${limit} downloads left today`;
-  el.style.color   = remaining <= 1 ? '#ef4444' : 'var(--gray)';
-}
+// Keep backward-compat alias used by other modules
+window.syncDailyCounter = syncLimitCounter;
 
-async function checkDailyLimit(count = 1) {
-  const data = await syncDailyCounter();
-  if (!data) return true; // allow if server unreachable
+async function checkTrialLimit(type) {
+  const data = await syncLimitCounter();
+  if (!data) return true;  // allow if server unreachable
   if (data.is_pro) return true;
-  if (data.remaining < count) {
-    if (data.remaining === 0) {
-      showLimitToast(`You've reached your ${data.limit} downloads/day limit. Upgrade to Pro.`);
-    } else {
-      showLimitToast(`Only ${data.remaining} download${data.remaining !== 1 ? 's' : ''} left today.`);
-    }
+
+  const keyMap   = { single: 'singles_used', batch: 'batches_used', transcript: 'transcripts_used' };
+  const limitKey = { single: 'single',       batch: 'batch',        transcript: 'transcript' };
+  const used  = data[keyMap[type]]     ?? 0;
+  const limit = data.limits[limitKey[type]] ?? 0;
+
+  if (used >= limit) {
+    showPaywall(type, used, limit);
     return false;
   }
   return true;
 }
 
-function showLimitToast(msg) {
-  if (window.showToast) showToast(msg, 'error', 6000);
-  setTimeout(() => navigateTo('license'), 1500);
+function showPaywall(type, used, limit) {
+  const msgs = {
+    single:     `You've used all ${limit} free downloads. Upgrade to Pro for unlimited.`,
+    batch:      `You've used your 1 free batch. Upgrade to Pro for unlimited batch downloads.`,
+    transcript: `You've used both free transcripts. Upgrade to Pro for unlimited transcripts.`,
+  };
+  if (window.showToast) showToast(msgs[type] || 'Free limit reached. Upgrade to Pro.', 'error', 7000);
+  setTimeout(() => navigateTo('license'), 1800);
 }
 
 function extractUrls(text) {
@@ -508,24 +517,33 @@ dropzone?.addEventListener('drop', async (e) => {
 // Download all button
 document.getElementById('batch-download-btn')?.addEventListener('click', async () => {
   if (stagingList.length === 0) return;
-  if (!await checkDailyLimit(stagingList.length)) return;
+  if (!await checkTrialLimit('batch')) return;
 
-  const saveFolder = localStorage.getItem('grabbit-save-folder') || '';
-  const format     = batchSelectedFormat;
-  const quality    = batchSelectedQuality;
+  const saveFolder    = localStorage.getItem('grabbit-save-folder') || '';
+  const format        = batchSelectedFormat;
+  const quality       = batchSelectedQuality;
+  const batchSession  = _newBatchSession();
+  const isFree        = !isPro();
+  const batchItems    = isFree ? stagingList.slice(0, FREE_BATCH_LIMIT) : stagingList;
+
+  if (isFree && stagingList.length > FREE_BATCH_LIMIT && window.showToast) {
+    showToast(`Free plan: only the first ${FREE_BATCH_LIMIT} videos will be downloaded.`, 'info', 5000);
+  }
 
   // Add all items to queue immediately with placeholder titles
-  const items = stagingList.map(staging => {
+  const items = batchItems.map(staging => {
     const item = {
       id: `dl_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-      url:       staging.url,
-      title:     shortenUrl(staging.url),
-      thumbnail: '',
-      platform:  staging.platform,
+      url:              staging.url,
+      title:            shortenUrl(staging.url),
+      thumbnail:        '',
+      platform:         staging.platform,
       format, quality,
-      startTime: '', endTime: '',
+      startTime:        '', endTime: '',
       saveFolder,
-      status: 'waiting', pct: 0, speed: '',
+      status:           'waiting', pct: 0, speed: '',
+      is_batch:         true,
+      batch_session_id: batchSession,
     };
     window.addToQueue(item);
     return item;
@@ -537,7 +555,7 @@ document.getElementById('batch-download-btn')?.addEventListener('click', async (
 
   // Fetch info in batches to avoid saturating yt-dlp
   fetchInfoInBatches(items);
-  setTimeout(syncDailyCounter, 1500);
+  setTimeout(syncLimitCounter, 1500);
 });
 
 async function fetchInfoAndUpdate(item) {
@@ -642,7 +660,7 @@ document.querySelectorAll('#quality-chips .chip').forEach(chip => {
 
 addQueueBtn.addEventListener('click', async () => {
   if (!currentInfo) return;
-  if (!await checkDailyLimit(1)) return;
+  if (!await checkTrialLimit('single')) return;
 
   const segmentEnabled = document.getElementById('segment-toggle')?.checked;
   const startTime   = segmentEnabled ? document.getElementById('start-time').value.trim() : '';
@@ -668,7 +686,7 @@ addQueueBtn.addEventListener('click', async () => {
   window.addToQueue(item);
   navigateTo('queue');
   resetDownloadPage();
-  syncDailyCounter();
+  syncLimitCounter();
 });
 
 // ── Clear ──────────────────────────────────────────────────
@@ -703,13 +721,10 @@ const style = document.createElement('style');
 style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
 document.head.appendChild(style);
 
-// Expose for other modules
-window.syncDailyCounter = syncDailyCounter;
-
-// Show daily counter on load from server
-syncDailyCounter();
-// Refresh counter every 15 seconds
-setInterval(syncDailyCounter, 15000);
+// Show counter on load
+syncLimitCounter();
+// Refresh every 30 seconds
+setInterval(syncLimitCounter, 30000);
 
 // ── TRANSCRIPT MODE ────────────────────────────────────────
 
@@ -829,7 +844,7 @@ transClearBtn?.addEventListener('click', () => {
 
 transAddQueueBtn?.addEventListener('click', async () => {
   if (!transCurrentInfo) return;
-  if (!await checkDailyLimit(1)) return;
+  if (!await checkTrialLimit('transcript')) return;
 
   const saveFolder = localStorage.getItem('grabbit-save-folder') || '';
   const item = {
@@ -851,7 +866,7 @@ transAddQueueBtn?.addEventListener('click', async () => {
   window.addToQueue(item);
   navigateTo('queue');
   transClearBtn.click();
-  syncDailyCounter();
+  syncLimitCounter();
 });
 
 

@@ -33,7 +33,7 @@ def _load_env_file():
 _load_env_file()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://esfaxfwrftiafghtxmnk.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "sb_publishable_0O8uU2ZZxjK7B4ycReFDsA_B4NkAyZy")
+SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZmF4ZndyZnRpYWZnaHR4bW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzEwODIsImV4cCI6MjA5MDg0NzA4Mn0.Hm1QEEBd2WXq7nM_JE7U4Zqhp5GZ-L4a_QnasL3GvXM")
 
 # ── Version ────────────────────────────────────────────────
 APP_VERSION     = "2.0.0"
@@ -141,157 +141,135 @@ def post_settings():
     save_settings_to_disk(current)
     return jsonify({"ok": True})
 
-LIMITS_FILE = DATA_DIR / "limits.json"
-limits_lock = threading.Lock()
+# ── Free tier limits ───────────────────────────────────────
+TRIAL_LIMITS = {"single": 10, "batch": 1, "transcript": 2}
 
-def load_limits():
+# Deduplicate batch increments within a server session (in-memory)
+_seen_batch_sessions     = set()
+_batch_session_lock      = threading.Lock()
+
+def _is_pro(code: str) -> bool:
+    """Return True if the given license code is active in Supabase."""
+    if not code or not re.match(r'^GRAB-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$', code):
+        return False
     try:
-        if LIMITS_FILE.exists():
-            with open(LIMITS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return {}
-
-def save_limits(data):
-    try:
-        with open(LIMITS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f)
-    except Exception:
-        pass
-
-def get_today_key():
-    from datetime import date
-    return str(date.today())
-
-def get_daily_count():
-    key = get_today_key()
-    with limits_lock:
-        data = load_limits()
-        return data.get(key, 0)
-
-def increment_daily_count():
-    key = get_today_key()
-    with limits_lock:
-        data = load_limits()
-        # Keep only today's key
-        data = {key: data.get(key, 0) + 1}
-        save_limits(data)
-        return data[key]
-
-def _check_trial_active():
-    """Returns True if this machine has an active trial in Supabase."""
-    try:
-        machine_id = get_or_create_machine_id()
         req = urllib.request.Request(
-            f"{SUPABASE_URL}/rest/v1/trials?machine_id=eq.{urllib.parse.quote(machine_id)}&select=trial_end",
+            f"{SUPABASE_URL}/rest/v1/licenses?code=eq.{urllib.parse.quote(code)}&select=is_active,days_left",
             headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read())
-        if data:
-            trial_end = datetime.fromisoformat(data[0]["trial_end"].replace("Z", "+00:00"))
-            return datetime.now(timezone.utc) < trial_end
+        return bool(data and data[0].get("is_active") and data[0].get("days_left", 0) > 0)
+    except Exception:
+        return False
+
+def _get_trial_usage(machine_id: str) -> dict:
+    """Fetch trial usage counters from Supabase. Returns zeros on error."""
+    try:
+        body = json.dumps({"p_machine_id": machine_id}).encode()
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/rest/v1/rpc/get_trial_usage",
+            data=body,
+            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.loads(resp.read()) or {}
+    except Exception:
+        return {}
+
+def _increment_trial_usage(machine_id: str, dl_type: str):
+    """Increment a usage counter in Supabase. Fire-and-forget."""
+    try:
+        body = json.dumps({"p_machine_id": machine_id, "p_type": dl_type}).encode()
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/rest/v1/rpc/increment_trial_usage",
+            data=body,
+            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as _:
+            pass
     except Exception:
         pass
-    return False
 
 @app.route("/api/limits/status")
 def limits_status():
-    code   = request.args.get("license", "").strip().upper()
-    is_pro = False
-
-    if code and re.match(r'^GRAB-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$', code):
-        try:
-            req = urllib.request.Request(
-                f"{SUPABASE_URL}/rest/v1/licenses?code=eq.{urllib.parse.quote(code)}&select=is_active,days_left",
-                headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
-            )
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                data = json.loads(resp.read())
-            if data and data[0].get("is_active") and data[0].get("days_left", 0) > 0:
-                is_pro = True
-        except Exception:
-            pass
-
-    if not is_pro:
-        is_pro = _check_trial_active()
-
-    used  = get_daily_count()
-    limit = 999999 if is_pro else 2
+    code       = (load_settings().get("license_code") or request.args.get("license", "")).strip().upper()
+    is_pro     = _is_pro(code)
+    machine_id = get_or_create_machine_id()
+    usage      = {} if is_pro else _get_trial_usage(machine_id)
     return jsonify({
-        "used":      used,
-        "limit":     2,
-        "remaining": max(0, limit - used),
-        "is_pro":    is_pro,
-        "allowed":   used < limit,
+        "is_pro":      is_pro,
+        "singles_used":    usage.get("singles",    0),
+        "batches_used":    usage.get("batches",    0),
+        "transcripts_used":usage.get("transcripts",0),
+        "limits": TRIAL_LIMITS,
     })
 
-@app.route("/api/trial/start", methods=["POST"])
-def trial_start():
-    email = (request.json or {}).get("email", "").strip().lower()
-    if not email or "@" not in email or "." not in email.split("@")[-1]:
-        return jsonify({"ok": False, "error": "invalid_email"})
+@app.route("/api/limits/reset", methods=["POST"])
+def limits_reset():
+    return jsonify({"ok": True})
 
-    machine_id = get_or_create_machine_id()
+# ── Session ping ───────────────────────────────────────────
+def _ping_session():
+    """Upsert one row per machine into `installs` table. Fire-and-forget.
+    Never throws — if Supabase is unreachable the app continues normally."""
     try:
-        body = json.dumps({"email": email, "machine_id": machine_id}).encode()
+        _plat = (
+            "windows" if sys.platform == "win32" else
+            "mac"     if sys.platform == "darwin" else
+            "linux"
+        )
+        settings    = load_settings()
+        has_license = bool(settings.get("license_code", ""))
+        body = json.dumps({
+            "p_machine_id":  get_or_create_machine_id(),
+            "p_last_seen":   datetime.now(timezone.utc).isoformat(),
+            "p_app_version": APP_VERSION,
+            "p_platform":    _plat,
+            "p_has_license": has_license,
+        }).encode()
         req = urllib.request.Request(
-            f"{SUPABASE_URL}/rest/v1/trials",
+            f"{SUPABASE_URL}/rest/v1/rpc/ping_install",
             data=body,
             headers={
                 "apikey":        SUPABASE_KEY,
                 "Authorization": f"Bearer {SUPABASE_KEY}",
                 "Content-Type":  "application/json",
-                "Prefer":        "return=representation",
             },
-            method="POST",
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read())
-        trial = data[0] if data else {}
-        return jsonify({"ok": True, "trial_end": trial.get("trial_end")})
-
+        with urllib.request.urlopen(req, timeout=8) as _:
+            pass
+        print(f"[Grabbit] Session ping OK — {_plat} v{APP_VERSION}")
     except urllib.error.HTTPError as e:
-        body_txt = e.read().decode()
-        if "duplicate" in body_txt.lower() or "unique" in body_txt.lower():
-            if "machine_id" in body_txt:
-                return jsonify({"ok": False, "error": "already_used_machine"})
-            return jsonify({"ok": False, "error": "already_used_email"})
-        return jsonify({"ok": False, "error": "server_error"})
+        body = e.read().decode(errors="replace")
+        print(f"[Grabbit] Session ping {e.code}: {body[:300]}")
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)})
+        print(f"[Grabbit] Session ping skipped: {e}")
 
-@app.route("/api/trial/status")
-def trial_status():
-    machine_id = get_or_create_machine_id()
+def _session_ping_loop():
+    """Ping on startup, then once every 24 h."""
+    _ping_session()
+    while True:
+        time.sleep(24 * 3600)
+        _ping_session()
+
+def _ping_download():
+    """Fire-and-forget: increment total_downloads + set last_download on each successful download."""
     try:
+        body = json.dumps({"p_machine_id": get_or_create_machine_id()}).encode()
         req = urllib.request.Request(
-            f"{SUPABASE_URL}/rest/v1/trials?machine_id=eq.{urllib.parse.quote(machine_id)}&select=trial_end,email",
-            headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
+            f"{SUPABASE_URL}/rest/v1/rpc/ping_download",
+            data=body,
+            headers={
+                "apikey":        SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "Content-Type":  "application/json",
+            },
         )
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read())
-
-        if not data:
-            return jsonify({"active": False, "trial_end": None})
-
-        trial_end_str = data[0]["trial_end"]
-        trial_end = datetime.fromisoformat(trial_end_str.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
-
-        if now < trial_end:
-            hours_left = int((trial_end - now).total_seconds() / 3600)
-            return jsonify({
-                "active":     True,
-                "trial_end":  trial_end_str,
-                "hours_left": hours_left,
-                "email":      data[0].get("email", ""),
-            })
-        return jsonify({"active": False, "trial_end": trial_end_str, "expired": True})
-
-    except Exception as e:
-        return jsonify({"active": False, "error": str(e)})
+        with urllib.request.urlopen(req, timeout=8) as _:
+            pass
+    except Exception:
+        pass
 
 @app.route("/api/limits/reset", methods=["POST"])
 def limits_reset():
@@ -1310,6 +1288,7 @@ def run_download(job_id, item_id, url, quality, audio_only, no_audio,
                     if real_thumb: extra["thumbnail"] = real_thumb
                     if real_duration: extra["duration"] = real_duration
                     update_item_status(item_id, "done", extra)
+                    threading.Thread(target=_ping_download, daemon=True).start()
                 else:
                     # File failed to copy or doesn't exist. Report an error.
                     with progress_lock:
@@ -1571,6 +1550,7 @@ def run_transcript_download(job_id, item_id, url, original_lang=None, save_folde
         update_item_status(item_id, "done", {
             "save_folder": str(out_dir), "file_size": file_size,
         })
+        threading.Thread(target=_ping_download, daemon=True).start()
 
     except Exception as e:
         try:
@@ -1656,6 +1636,29 @@ def download():
         settings    = load_settings()
         save_folder = settings.get("save_folder") or None
 
+    # ── Free-tier limit check ──────────────────────────────────
+    settings   = load_settings()
+    _code      = settings.get("license_code", "").strip().upper()
+    if not _is_pro(_code):
+        _machine   = get_or_create_machine_id()
+        _is_batch  = bool(data.get("is_batch"))
+        _dl_type   = "transcript" if is_transcript else ("batch" if _is_batch else "single")
+        _key_map   = {"single": "singles", "batch": "batches", "transcript": "transcripts"}
+        _usage     = _get_trial_usage(_machine)
+        _used      = _usage.get(_key_map[_dl_type], 0)
+        _limit     = TRIAL_LIMITS[_dl_type]
+        if _used >= _limit:
+            return jsonify({"error": "trial_limit_reached", "type": _dl_type, "limit": _limit}), 403
+        # Increment — for batch, only once per batch session
+        if _is_batch:
+            _session_id = data.get("batch_session_id", "")
+            with _batch_session_lock:
+                if _session_id not in _seen_batch_sessions:
+                    _seen_batch_sessions.add(_session_id)
+                    threading.Thread(target=_increment_trial_usage, args=(_machine, "batch"), daemon=True).start()
+        else:
+            threading.Thread(target=_increment_trial_usage, args=(_machine, _dl_type), daemon=True).start()
+
     import uuid
     job_id = f"dl_{int(time.time()*1000)}_{uuid.uuid4().hex[:6]}"
 
@@ -1677,8 +1680,6 @@ def download():
         "transcript_lang": original_lang if is_transcript else None,
     })
     save_queue_state(state["items"])
-
-    increment_daily_count()
 
     # ── Transcript download ────────────────────────────────
     if is_transcript:
@@ -2565,6 +2566,7 @@ if __name__ == "__main__":
     threading.Thread(target=check_for_updates, daemon=True).start()
     threading.Thread(target=engine_update_loop, daemon=True).start()
     threading.Thread(target=watchlist_polling_loop, daemon=True).start()
+    threading.Thread(target=_session_ping_loop, daemon=True).start()
     app.run(debug=False, port=5000)
 else:
     # Imported by launcher.py (PyInstaller build)
@@ -2572,3 +2574,4 @@ else:
     threading.Thread(target=check_for_updates, daemon=True).start()
     threading.Thread(target=engine_update_loop, daemon=True).start()
     threading.Thread(target=watchlist_polling_loop, daemon=True).start()
+    threading.Thread(target=_session_ping_loop, daemon=True).start()
