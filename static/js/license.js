@@ -251,8 +251,8 @@ document.getElementById('renew-btn')?.addEventListener('click', () => {
 });
 
 // ── Get Pro → open landing page ────────────────────────────
-document.getElementById('get-pro-btn')?.addEventListener('click', () => {
-  window.open(STRIPE_MONTHLY_LINK, '_blank');
+document.querySelectorAll('#get-pro-btn, .get-pro-monthly').forEach(btn => {
+  btn.addEventListener('click', () => window.open(STRIPE_MONTHLY_LINK, '_blank'));
 });
 
 document.getElementById('get-pro-annual-btn')?.addEventListener('click', () => {
