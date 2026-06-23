@@ -222,63 +222,89 @@ window.showConfirm = function(title, msg, onConfirm, confirmLabel) {
   }, 1200);
 })();
 
-// ── Auto-update notification ───────────────────────────────
+// ── Mandatory update wall ──────────────────────────────────
+let _updateWallShown = false;
+
+function showUpdateWall(version, downloadUrl) {
+  if (_updateWallShown) return;
+  _updateWallShown = true;
+
+  const wall = document.createElement('div');
+  wall.id = 'update-wall';
+  wall.style.cssText = `
+    position:fixed; inset:0; z-index:99999;
+    background:rgba(0,0,0,0.92); backdrop-filter:blur(12px);
+    display:flex; align-items:center; justify-content:center;
+  `;
+  wall.innerHTML = `
+    <div style="
+      background:var(--button-elevated); border:1px solid var(--button-stroke);
+      border-radius:24px; padding:44px 40px; max-width:400px; width:92%;
+      text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.7);
+    ">
+      <div style="
+        width:56px; height:56px; border-radius:16px; background:var(--secondary);
+        display:flex; align-items:center; justify-content:center; margin:0 auto 22px;
+      ">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      <div style="font-size:1.4rem; font-weight:800; color:var(--secondary); margin-bottom:8px;">
+        Update required
+      </div>
+      <div style="font-size:0.88rem; color:var(--gray); margin-bottom:6px;">
+        Grabbit <strong style="color:var(--secondary);">v${version}</strong> is available.
+      </div>
+      <div style="font-size:0.82rem; color:var(--gray); margin-bottom:32px; line-height:1.5;">
+        This version is no longer supported.<br>Please update to continue using Grabbit.
+      </div>
+      <button id="update-wall-btn" style="
+        width:100%; padding:13px; border:none; border-radius:12px;
+        background:var(--secondary); color:#fff; font-size:0.95rem;
+        font-weight:700; cursor:pointer; font-family:var(--font);
+        transition:opacity 0.15s;
+      ">
+        Download v${version}
+      </button>
+      <div id="update-wall-msg" style="font-size:0.78rem; color:var(--gray); margin-top:12px; min-height:18px;"></div>
+    </div>
+  `;
+  document.body.appendChild(wall);
+
+  document.getElementById('update-wall-btn').onclick = async () => {
+    const btn = document.getElementById('update-wall-btn');
+    const msg = document.getElementById('update-wall-msg');
+    btn.textContent = 'Opening download...';
+    btn.disabled    = true;
+    try {
+      const r = await fetch('/api/update/apply', { method: 'POST' });
+      const d = await r.json();
+      window.open(d.download_url || downloadUrl, '_blank');
+      msg.textContent = 'Installer opened — install it and relaunch Grabbit.';
+      btn.textContent = 'Download v' + '${version}';
+      btn.disabled    = false;
+    } catch {
+      msg.textContent = 'Could not open download. Try again.';
+      btn.textContent = 'Download v${version}';
+      btn.disabled    = false;
+    }
+  };
+}
+
 async function checkForUpdates() {
   try {
     const res  = await fetch('/api/update/status');
     const data = await res.json();
-    if (!data.available) return;
-
-    // Show persistent toast with update button
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:var(--button-elevated); border:1px solid var(--secondary);
-      border-radius:12px; padding:14px 20px; z-index:9998;
-      display:flex; align-items:center; gap:16px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.4);
-      font-size:0.88rem; color:var(--secondary);
-      animation:slideUp 0.3s ease;
-    `;
-    toast.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      <span>Grabbit <strong style="color:var(--secondary);">v${data.version}</strong> is available</span>
-      <button id="update-now-btn" style="
-        background:var(--secondary); color:#fff; border:none; border-radius:8px;
-        padding:6px 14px; font-size:0.82rem; font-weight:600; cursor:pointer;
-      ">Update now</button>
-      <button id="update-dismiss-btn" style="
-        background:none; border:none; color:var(--gray); cursor:pointer; font-size:1.1rem; line-height:1;
-      ">×</button>
-    `;
-    document.body.appendChild(toast);
-
-    document.getElementById('update-now-btn').onclick = async () => {
-      const btn = toast.querySelector('#update-now-btn');
-      btn.textContent = 'Opening...';
-      btn.disabled = true;
-      try {
-        const r = await fetch('/api/update/apply', { method: 'POST' });
-        const d = await r.json();
-        if (d.download_url) {
-          window.open(d.download_url, '_blank');
-          btn.textContent = 'Downloading...';
-          setTimeout(() => toast.remove(), 3000);
-        }
-      } catch {
-        btn.textContent = 'Update now';
-        btn.disabled = false;
-      }
-    };
-    document.getElementById('update-dismiss-btn').onclick = () => toast.remove();
-  } catch { /* ignore */ }
+    if (data.available) showUpdateWall(data.version, data.url);
+  } catch { /* ignore — if check fails, don't block */ }
 }
 
-// Check for updates 5s after load (give server time to check GitHub)
+// Check 5s after load, then every 10 min
 setTimeout(checkForUpdates, 5000);
+setInterval(checkForUpdates, 10 * 60 * 1000);
 
 window.isProOrTrial = function() {
   return !!localStorage.getItem('grabbit-license');
