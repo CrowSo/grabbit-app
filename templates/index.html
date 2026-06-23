@@ -944,6 +944,45 @@
                 </div>
               </div>
 
+              <!-- Free tier usage card (hidden for Pro users) -->
+              <div class="card" id="free-usage-card" style="display:none;">
+                <div class="settings-card-title" style="margin-bottom:16px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--gray);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  Free plan usage
+                </div>
+                <!-- Singles -->
+                <div style="margin-bottom:14px;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:6px;">
+                    <span style="color:var(--gray);">Single downloads</span>
+                    <span id="fu-singles-label" style="color:var(--secondary);font-weight:600;">— / 10</span>
+                  </div>
+                  <div style="height:5px;background:var(--button-hover);border-radius:99px;overflow:hidden;">
+                    <div id="fu-singles-bar" style="height:100%;background:var(--secondary);border-radius:99px;transition:width 0.4s ease;width:0%;"></div>
+                  </div>
+                </div>
+                <!-- Batch -->
+                <div style="margin-bottom:14px;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:6px;">
+                    <span style="color:var(--gray);">Batch session</span>
+                    <span id="fu-batch-label" style="color:var(--secondary);font-weight:600;">— / 1</span>
+                  </div>
+                  <div style="height:5px;background:var(--button-hover);border-radius:99px;overflow:hidden;">
+                    <div id="fu-batch-bar" style="height:100%;background:var(--secondary);border-radius:99px;transition:width 0.4s ease;width:0%;"></div>
+                  </div>
+                </div>
+                <!-- Transcripts -->
+                <div style="margin-bottom:18px;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:6px;">
+                    <span style="color:var(--gray);">Transcripts</span>
+                    <span id="fu-transcripts-label" style="color:var(--secondary);font-weight:600;">— / 2</span>
+                  </div>
+                  <div style="height:5px;background:var(--button-hover);border-radius:99px;overflow:hidden;">
+                    <div id="fu-transcripts-bar" style="height:100%;background:var(--secondary);border-radius:99px;transition:width 0.4s ease;width:0%;"></div>
+                  </div>
+                </div>
+                <button class="btn btn-primary get-pro-btn" style="width:100%;justify-content:center;" id="get-pro-btn">Upgrade to Pro — Unlimited →</button>
+              </div>
+
               <div class="card" id="activate-card">
                 <div class="settings-card-title" style="margin-bottom:10px;font-size:0.78rem;color:var(--gray);font-weight:500;">
                   Have a license key?

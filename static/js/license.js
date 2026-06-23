@@ -35,16 +35,46 @@ async function loadFreeUsage() {
     const data = await res.json();
     if (data.is_pro) return;
 
-    const singles    = data.limits.single     - data.singles_used;
-    const batches    = data.limits.batch      - data.batches_used;
-    const transcripts= data.limits.transcript - data.transcripts_used;
+    const su = data.singles_used     ?? 0;
+    const bu = data.batches_used     ?? 0;
+    const tu = data.transcripts_used ?? 0;
+    const sl = data.limits.single;
+    const bl = data.limits.batch;
+    const tl = data.limits.transcript;
 
+    // Status bar
     document.getElementById('license-status').className         = 'license-status inactive';
     document.getElementById('license-icon').className           = 'license-icon inactive';
     document.getElementById('license-status-title').textContent = 'Free plan';
     document.getElementById('license-status-sub').textContent   =
-      `${Math.max(0,singles)} downloads · ${Math.max(0,batches)} batch · ${Math.max(0,transcripts)} transcripts remaining`;
+      `${Math.max(0, sl - su)} downloads · ${Math.max(0, bl - bu)} batch · ${Math.max(0, tl - tu)} transcripts remaining`;
     document.getElementById('license-days-wrap').style.display  = 'none';
+
+    // Show free usage card
+    const card = document.getElementById('free-usage-card');
+    if (card) card.style.display = 'block';
+
+    // Singles
+    const singlesExhausted = su >= sl;
+    document.getElementById('fu-singles-label').textContent  = `${su} / ${sl} used`;
+    document.getElementById('fu-singles-label').style.color  = singlesExhausted ? 'var(--red)' : 'var(--secondary)';
+    document.getElementById('fu-singles-bar').style.width    = `${Math.min(100, (su / sl) * 100)}%`;
+    document.getElementById('fu-singles-bar').style.background = singlesExhausted ? 'var(--red)' : 'var(--secondary)';
+
+    // Batch
+    const batchExhausted = bu >= bl;
+    document.getElementById('fu-batch-label').textContent    = `${bu} / ${bl} used`;
+    document.getElementById('fu-batch-label').style.color    = batchExhausted ? 'var(--red)' : 'var(--secondary)';
+    document.getElementById('fu-batch-bar').style.width      = `${Math.min(100, (bu / bl) * 100)}%`;
+    document.getElementById('fu-batch-bar').style.background = batchExhausted ? 'var(--red)' : 'var(--secondary)';
+
+    // Transcripts
+    const transExhausted = tu >= tl;
+    document.getElementById('fu-transcripts-label').textContent  = `${tu} / ${tl} used`;
+    document.getElementById('fu-transcripts-label').style.color  = transExhausted ? 'var(--red)' : 'var(--secondary)';
+    document.getElementById('fu-transcripts-bar').style.width    = `${Math.min(100, (tu / tl) * 100)}%`;
+    document.getElementById('fu-transcripts-bar').style.background = transExhausted ? 'var(--red)' : 'var(--secondary)';
+
   } catch { /* keep default */ }
 }
 
@@ -116,7 +146,8 @@ function setLicenseActive(code, data, showMsg) {
 
   document.getElementById('license-details-card').style.display = 'block';
   document.getElementById('activate-card').style.display        = 'none';
-  document.getElementById('trial-active-card').style.display    = 'none';
+  const fuc = document.getElementById('free-usage-card');
+  if (fuc) fuc.style.display = 'none';
 
   document.getElementById('lic-email').textContent   = data.email   || '—';
   _licCodeReal    = code;
