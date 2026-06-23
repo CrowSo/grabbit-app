@@ -271,18 +271,6 @@ def _ping_download():
     except Exception:
         pass
 
-@app.route("/api/limits/reset", methods=["POST"])
-def limits_reset():
-    """Resets today's download counter. Useful for testing."""
-    key = get_today_key()
-    with limits_lock:
-        save_limits({key: 0})
-    return jsonify({"ok": True, "count": 0})
-def limits_increment():
-    # Kept for backward compat but /api/download now handles incrementing
-    # Don't increment here to avoid double counting
-    return jsonify({"count": get_daily_count()})
-
 state_lock = threading.Lock()
 
 def load_queue_state():

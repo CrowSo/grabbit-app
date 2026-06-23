@@ -238,9 +238,9 @@ function showUpdateWall(version, downloadUrl) {
   `;
   wall.innerHTML = `
     <div style="
-      background:var(--button-elevated); border:1px solid var(--button-stroke);
+      background:#1c1c1e; border:1px solid rgba(255,255,255,0.18);
       border-radius:24px; padding:44px 40px; max-width:400px; width:92%;
-      text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.7);
+      text-align:center; box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 32px 80px rgba(0,0,0,0.9);
     ">
       <div style="
         width:56px; height:56px; border-radius:16px; background:var(--secondary);
@@ -263,7 +263,7 @@ function showUpdateWall(version, downloadUrl) {
       </div>
       <button id="update-wall-btn" style="
         width:100%; padding:13px; border:none; border-radius:12px;
-        background:var(--secondary); color:#fff; font-size:0.95rem;
+        background:#ffffff; color:#000000; font-size:0.95rem;
         font-weight:700; cursor:pointer; font-family:var(--font);
         transition:opacity 0.15s;
       ">
