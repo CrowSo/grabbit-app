@@ -7,7 +7,8 @@ const licenseInput  = document.getElementById('license-input');
 const activateBtn   = document.getElementById('activate-btn');
 const activateMsg   = document.getElementById('activate-msg');
 const licensePill   = document.getElementById('license-pill');
-const LANDING_URL   = 'https://appgrabbit.com';
+const STRIPE_MONTHLY_LINK = 'https://buy.stripe.com/bJe5kF55Bgmi92O5fm0x201';
+const STRIPE_ANNUAL_LINK  = 'https://buy.stripe.com/8x200l9lR6LIfrcfU00x200';
 
 // ── Format input ───────────────────────────────────────────
 licenseInput?.addEventListener('input', () => {
@@ -251,7 +252,11 @@ document.getElementById('renew-btn')?.addEventListener('click', () => {
 
 // ── Get Pro → open landing page ────────────────────────────
 document.getElementById('get-pro-btn')?.addEventListener('click', () => {
-  window.open(LANDING_URL, '_blank');
+  window.open(STRIPE_MONTHLY_LINK, '_blank');
+});
+
+document.getElementById('get-pro-annual-btn')?.addEventListener('click', () => {
+  window.open(STRIPE_ANNUAL_LINK, '_blank');
 });
 
 // ── Message helper ─────────────────────────────────────────
