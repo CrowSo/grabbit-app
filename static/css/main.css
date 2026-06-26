@@ -1394,3 +1394,152 @@ select.input {
   .page { padding: 12px; }
   .card { padding: 14px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CONVERTER + THUMBNAIL STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Drop zone */
+.ct-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  border: 2px dashed var(--button-stroke);
+  border-radius: 16px;
+  background: var(--button-elevated);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  padding: 28px 20px;
+}
+.ct-dropzone:hover,
+.ct-dropzone.drag-over {
+  border-color: var(--secondary);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Staging list */
+.ct-staging-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--button-elevated);
+  border: 1px solid var(--button-stroke);
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+.ct-file-name {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ct-file-icon   { display: flex; align-items: center; color: var(--gray); }
+.ct-file-type-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+  background: var(--button-hover);
+  border-radius: 5px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+.ct-format-slot { display: flex; align-items: center; }
+.ct-format-select { cursor: pointer; }
+
+/* Progress items */
+.ct-progress-item {
+  background: var(--button-elevated);
+  border: 1px solid var(--button-stroke);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.ct-prog-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--secondary);
+  font-weight: 600;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ct-prog-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ct-prog-bar-wrap {
+  height: 4px;
+  background: var(--button-hover);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 7px;
+}
+.ct-prog-bar {
+  height: 100%;
+  background: var(--secondary);
+  border-radius: 99px;
+  width: 0%;
+  transition: width 0.4s ease, background 0.3s;
+}
+.ct-prog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ct-prog-msg  { font-size: 0.72rem; color: var(--gray); }
+.ct-cancel-btn, .ct-remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.ct-cancel-btn:hover, .ct-remove-btn:hover {
+  color: var(--red);
+  background: rgba(237,34,54,0.08);
+}
+
+/* Thumbnail size rows */
+.ct-thumb-size-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--button-hover);
+  border-radius: 8px;
+  gap: 10px;
+}
+.ct-thumb-size-label {
+  font-size: 0.77rem;
+  color: var(--secondary);
+  font-family: var(--font);
+}
+
+/* Generic icon button helper */
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--gray);
+  transition: color 0.15s, background 0.15s;
+}
+.btn-icon:hover { color: var(--secondary); background: var(--button-hover); }

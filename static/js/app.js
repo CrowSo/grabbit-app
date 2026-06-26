@@ -69,6 +69,7 @@ const pageTitles = {
   watch:    'Watch',
   settings: 'Settings',
   license:  'License',
+  convert:  'Tools',
 };
 
 function navigateTo(pageId) {

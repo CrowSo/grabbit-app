@@ -2252,6 +2252,334 @@ def verify_license():
         print(f"[Grabbit] License check failed: {e}")
         return jsonify({"valid": False, "error": "Could not reach license server"})
 
+# ─── LOCAL CONVERTER ─────────────────────────────────────────────────────────
+
+_VIDEO_EXTS = {'.mp4','.mkv','.mov','.webm','.avi','.wmv','.flv','.m4v','.ts','.mts','.3gp','.mp4v','.m2ts'}
+_AUDIO_EXTS = {'.mp3','.flac','.wav','.aac','.m4a','.ogg','.opus','.wma','.aiff','.ape','.alac'}
+_IMAGE_EXTS = {'.jpg','.jpeg','.png','.webp','.heic','.heif','.bmp','.tiff','.tif','.gif','.avif'}
+
+def _detect_file_type(path: str) -> str:
+    ext = Path(path).suffix.lower()
+    if ext in _VIDEO_EXTS: return 'video'
+    if ext in _AUDIO_EXTS: return 'audio'
+    if ext in _IMAGE_EXTS: return 'image'
+    return 'unknown'
+
+# (output_ext, ffmpeg_extra_args)
+_CONV_FORMATS = {
+    'mp4':    ('mp4',  ['-c:v','libx264','-preset','fast','-crf','23','-c:a','aac','-b:a','192k']),
+    'mkv':    ('mkv',  ['-c:v','libx264','-preset','fast','-crf','23','-c:a','aac','-b:a','192k']),
+    'mov':    ('mov',  ['-c:v','libx264','-preset','fast','-crf','23','-c:a','aac','-b:a','192k']),
+    'webm':   ('webm', ['-c:v','libvpx-vp9','-crf','30','-b:v','0','-c:a','libopus','-b:a','128k']),
+    'avi':    ('avi',  ['-c:v','mpeg4','-q:v','6','-c:a','libmp3lame','-b:a','192k']),
+    'prores': ('mov',  ['-c:v','prores_ks','-profile:v','3','-vendor','apl0','-pix_fmt','yuv422p10le','-c:a','pcm_s16le','-ar','48000']),
+    'dnxhd':  ('mov',  ['-c:v','dnxhd','-profile:v','dnxhr_hq','-pix_fmt','yuv422p','-c:a','pcm_s16le','-ar','48000']),
+    'mp3':    ('mp3',  ['-vn','-c:a','libmp3lame','-b:a','320k']),
+    'flac':   ('flac', ['-vn','-c:a','flac']),
+    'wav':    ('wav',  ['-vn','-c:a','pcm_s16le']),
+    'aac':    ('m4a',  ['-vn','-c:a','aac','-b:a','256k']),
+    'm4a':    ('m4a',  ['-vn','-c:a','aac','-b:a','256k']),
+    'ogg':    ('ogg',  ['-vn','-c:a','libvorbis','-q:a','6']),
+    'opus':   ('ogg',  ['-vn','-c:a','libopus','-b:a','192k']),
+}
+
+_TYPE_FORMATS = {
+    'video': ['mp4','mkv','mov','webm','avi','mp3','prores','dnxhd'],
+    'audio': ['mp3','flac','wav','aac','m4a','ogg','opus'],
+    'image': ['jpg','png','webp','avif','jxl'],
+}
+
+_FORMAT_LABELS = {
+    'mp4':'MP4 (H.264)','mkv':'MKV (H.264)','mov':'MOV (H.264)',
+    'webm':'WebM (VP9)','avi':'AVI','prores':'ProRes HQ ★','dnxhd':'DNxHR HQ ★',
+    'mp3':'MP3 (320k)','flac':'FLAC','wav':'WAV','aac':'AAC','m4a':'M4A',
+    'ogg':'OGG','opus':'Opus','jpg':'JPEG','png':'PNG','webp':'WebP',
+    'avif':'AVIF','jxl':'JPEG XL',
+}
+
+_conv_jobs        = {}
+_conv_lock        = threading.Lock()
+_conv_cancel      = set()
+_conv_cancel_lock = threading.Lock()
+
+
+def _get_media_duration(path: str):
+    try:
+        r = subprocess.run(
+            [str(FFMPEG_PATH), '-i', path],
+            capture_output=True, text=True, timeout=15, **WIN_FLAGS,
+        )
+        m = re.search(r'Duration:\s*(\d+):(\d{2}):(\d{2})\.(\d{2})', r.stderr)
+        if m:
+            return int(m[1])*3600 + int(m[2])*60 + int(m[3]) + int(m[4])/100
+    except Exception:
+        pass
+    return None
+
+
+def _run_conv_media(job_id, src, out_format, out_dir):
+    ext, extra = _CONV_FORMATS[out_format]
+    out_path   = out_dir / (src.stem + '.' + ext)
+    if out_path.exists():
+        out_path = out_dir / f"{src.stem}_{int(time.time())}.{ext}"
+    duration = _get_media_duration(str(src))
+    cmd = [str(FFMPEG_PATH), '-y', '-i', str(src)] + extra + [str(out_path)]
+    try:
+        proc = subprocess.Popen(
+            cmd, stderr=subprocess.PIPE, stdout=subprocess.DEVNULL,
+            text=True, errors='replace', **WIN_FLAGS,
+        )
+        for line in proc.stderr:
+            with _conv_cancel_lock:
+                if job_id in _conv_cancel:
+                    proc.kill()
+                    _conv_cancel.discard(job_id)
+                    with _conv_lock:
+                        _conv_jobs[job_id].update(status='cancelled', pct=0, msg='Cancelled')
+                    return
+            m = re.search(r'time=(\d+):(\d{2}):(\d{2})\.(\d{2})', line)
+            if m and duration:
+                secs = int(m[1])*3600 + int(m[2])*60 + int(m[3]) + int(m[4])/100
+                pct  = min(99, int(secs / duration * 100))
+                with _conv_lock:
+                    _conv_jobs[job_id].update(pct=pct, msg=f'{pct}%')
+        proc.wait()
+        if proc.returncode == 0 and out_path.exists():
+            with _conv_lock:
+                _conv_jobs[job_id].update(status='done', pct=100, msg=str(out_path), output=str(out_path))
+        else:
+            with _conv_lock:
+                _conv_jobs[job_id].update(status='error', pct=0, msg='Conversion failed — check format compatibility')
+    except Exception as e:
+        with _conv_lock:
+            _conv_jobs[job_id].update(status='error', pct=0, msg=str(e)[:200])
+
+
+def _run_conv_image(job_id, src, out_format, out_dir):
+    ext_map = {'jpg':'.jpg','png':'.png','webp':'.webp','avif':'.avif','jxl':'.jxl'}
+    ext = ext_map.get(out_format, '.jpg')
+    out_path = out_dir / (src.stem + ext)
+    if out_path.exists():
+        out_path = out_dir / f"{src.stem}_{int(time.time())}{ext}"
+    with _conv_lock:
+        _conv_jobs[job_id].update(pct=30, msg='Converting...')
+    try:
+        from PIL import Image
+        img = Image.open(str(src))
+        if out_format == 'jxl':
+            try:
+                import pillow_jxl  # noqa — registers JXL format
+                img.save(str(out_path), format='JXL', quality=90)
+            except ImportError:
+                with _conv_lock:
+                    _conv_jobs[job_id].update(status='error', pct=0,
+                        msg='JPEG XL requires pillow-jxl-plugin. Run: pip install pillow-jxl-plugin')
+                return
+        elif out_format == 'avif':
+            try:
+                img.save(str(out_path), format='AVIF', quality=60)
+            except Exception:
+                # Fallback: FFmpeg libaom
+                r = subprocess.run(
+                    [str(FFMPEG_PATH), '-y', '-i', str(src), str(out_path)],
+                    capture_output=True, timeout=120, **WIN_FLAGS,
+                )
+                if r.returncode != 0:
+                    with _conv_lock:
+                        _conv_jobs[job_id].update(status='error', pct=0,
+                            msg='AVIF conversion failed — FFmpeg may not have libaom support')
+                    return
+        elif out_format == 'jpg':
+            if img.mode in ('RGBA','LA','P'):
+                bg = Image.new('RGB', img.size, (255,255,255))
+                if img.mode == 'P': img = img.convert('RGBA')
+                if img.mode in ('RGBA','LA'): bg.paste(img, mask=img.split()[-1])
+                else: bg.paste(img)
+                img = bg
+            img.save(str(out_path), format='JPEG', quality=92, optimize=True)
+        else:
+            fmt_map = {'png':'PNG','webp':'WEBP'}
+            kw = {'quality':90,'method':6} if out_format == 'webp' else {}
+            img.save(str(out_path), format=fmt_map.get(out_format,'PNG'), **kw)
+        with _conv_lock:
+            _conv_jobs[job_id].update(status='done', pct=100, msg=str(out_path), output=str(out_path))
+    except ImportError:
+        # No Pillow — try FFmpeg
+        r = subprocess.run(
+            [str(FFMPEG_PATH), '-y', '-i', str(src), str(out_path)],
+            capture_output=True, timeout=60, **WIN_FLAGS,
+        )
+        if r.returncode == 0 and out_path.exists():
+            with _conv_lock:
+                _conv_jobs[job_id].update(status='done', pct=100, msg=str(out_path), output=str(out_path))
+        else:
+            with _conv_lock:
+                _conv_jobs[job_id].update(status='error', pct=0, msg='Image conversion failed')
+    except Exception as e:
+        with _conv_lock:
+            _conv_jobs[job_id].update(status='error', pct=0, msg=str(e)[:200])
+
+
+def _run_conv_job(job_id, input_path, out_format, out_folder):
+    src       = Path(input_path)
+    file_type = _detect_file_type(input_path)
+    out_dir   = Path(out_folder) if out_folder else src.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with _conv_lock:
+        _conv_jobs[job_id].update(status='converting', pct=0, msg='Starting...')
+    try:
+        if file_type == 'image':
+            _run_conv_image(job_id, src, out_format, out_dir)
+        elif file_type in ('video', 'audio'):
+            if out_format not in _CONV_FORMATS:
+                with _conv_lock:
+                    _conv_jobs[job_id].update(status='error', msg=f'Unknown format: {out_format}')
+                return
+            _run_conv_media(job_id, src, out_format, out_dir)
+        else:
+            with _conv_lock:
+                _conv_jobs[job_id].update(status='error', msg='Unsupported file type')
+    except Exception as e:
+        with _conv_lock:
+            _conv_jobs[job_id].update(status='error', pct=0, msg=str(e)[:200])
+
+
+@app.route("/api/convert/start", methods=["POST"])
+def api_convert_start():
+    code = (load_settings().get("license_code") or "").strip().upper()
+    if not _is_pro(code):
+        return jsonify({'error': 'pro_required'}), 403
+    data  = request.json or {}
+    files = data.get('files', [])
+    if not files:
+        return jsonify({'error': 'No files'}), 400
+    jobs = []
+    for f in files:
+        inp    = f.get('path', '')
+        fmt    = f.get('format', 'mp4')
+        folder = f.get('output_folder', '')
+        if not inp or not Path(inp).exists():
+            jobs.append({'job_id': None, 'filename': Path(inp).name if inp else '?', 'error': 'File not found'})
+            continue
+        job_id = str(_uuid.uuid4())[:8]
+        with _conv_lock:
+            _conv_jobs[job_id] = {'status':'queued','pct':0,'msg':'Queued','filename':Path(inp).name,'output':None}
+        threading.Thread(target=_run_conv_job, args=(job_id, inp, fmt, folder), daemon=True).start()
+        jobs.append({'job_id': job_id, 'filename': Path(inp).name})
+    return jsonify({'jobs': jobs})
+
+
+@app.route("/api/convert/progress/<job_id>")
+def api_convert_progress(job_id):
+    with _conv_lock:
+        return jsonify(_conv_jobs.get(job_id, {'status':'unknown','pct':0,'msg':''}))
+
+
+@app.route("/api/convert/cancel/<job_id>", methods=["POST"])
+def api_convert_cancel(job_id):
+    with _conv_cancel_lock:
+        _conv_cancel.add(job_id)
+    return jsonify({'ok': True})
+
+
+@app.route("/api/browse_files", methods=["POST"])
+def api_browse_files():
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        files = filedialog.askopenfilenames(
+            title='Select files to convert',
+            initialdir=str(DOWNLOADS_DIR),
+            filetypes=[
+                ('Media files','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v '
+                               '*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma '
+                               '*.jpg *.jpeg *.png *.webp *.heic *.bmp *.tiff *.gif *.avif'),
+                ('Video','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts'),
+                ('Audio','*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma'),
+                ('Image','*.jpg *.jpeg *.png *.webp *.heic *.bmp *.tiff *.gif *.avif'),
+                ('All files','*.*'),
+            ]
+        )
+        root.destroy()
+        return jsonify({'files': list(files) if files else []})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ─── THUMBNAIL DOWNLOADER ─────────────────────────────────────────────────────
+
+@app.route("/api/thumbget/fetch", methods=["POST"])
+def api_thumbget_fetch():
+    data = request.json or {}
+    url  = data.get('url', '').strip()
+    if not url:
+        return jsonify({'error': 'No URL'}), 400
+    try:
+        cmd = [str(YTDLP_PATH),'--dump-single-json','--no-download','--no-warnings','--quiet', url]
+        r   = subprocess.run(cmd, capture_output=True, text=True, timeout=30, env=_ytdlp_env(), **WIN_FLAGS)
+        if r.returncode != 0:
+            raise Exception((r.stderr or 'Could not fetch video info').strip()[:200])
+        info     = json.loads(r.stdout)
+        video_id = info.get('id', '')
+        title    = info.get('title', 'thumbnail')
+        sizes = [
+            {'id':'maxres','label':'MaxRes — 1280×720','url':f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'},
+            {'id':'sd',    'label':'SD — 640×480',     'url':f'https://img.youtube.com/vi/{video_id}/sddefault.jpg'},
+            {'id':'hq',    'label':'HQ — 480×360',     'url':f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'},
+            {'id':'mq',    'label':'MQ — 320×180',     'url':f'https://img.youtube.com/vi/{video_id}/mqdefault.jpg'},
+        ]
+        preview = f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'
+        return jsonify({'title': title, 'video_id': video_id, 'sizes': sizes, 'preview': preview})
+    except Exception as e:
+        return jsonify({'error': str(e)[:200]}), 500
+
+
+@app.route("/api/thumbget/save", methods=["POST"])
+def api_thumbget_save():
+    data        = request.json or {}
+    thumb_url   = data.get('url', '')
+    filename    = data.get('filename', 'thumbnail')
+    save_folder = data.get('save_folder') or str(DOWNLOADS_DIR)
+    fmt         = data.get('format', 'jpg')
+    if not thumb_url:
+        return jsonify({'error': 'No URL'}), 400
+    try:
+        out_dir   = Path(save_folder)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        safe_name = re.sub(r'[<>:"/\\|?*]', '_', filename)[:80]
+        req = urllib.request.Request(thumb_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            img_data = resp.read()
+        if not img_data or len(img_data) < 2000:
+            return jsonify({'error': 'Thumbnail not available at this size. Try HQ or MQ.'}), 404
+        if fmt == 'jpg':
+            out_path = out_dir / f'{safe_name}.jpg'
+            if out_path.exists():
+                out_path = out_dir / f'{safe_name}_{int(time.time())}.jpg'
+            out_path.write_bytes(img_data)
+        else:
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+                tmp.write(img_data)
+                tmp_path = tmp.name
+            out_path = out_dir / f'{safe_name}.{fmt}'
+            if out_path.exists():
+                out_path = out_dir / f'{safe_name}_{int(time.time())}.{fmt}'
+            r = subprocess.run(
+                [str(FFMPEG_PATH), '-y', '-i', tmp_path, str(out_path)],
+                capture_output=True, timeout=30, **WIN_FLAGS,
+            )
+            Path(tmp_path).unlink(missing_ok=True)
+            if r.returncode != 0:
+                return jsonify({'error': 'Could not convert thumbnail format'}), 500
+        return jsonify({'ok': True, 'path': str(out_path), 'filename': out_path.name})
+    except Exception as e:
+        return jsonify({'error': str(e)[:200]}), 500
+
+
 # ─── AUTO-UPDATE ON STARTUP ───────────────────────────────────────────────────
 
 startup_status = {"ytdlp": "checking", "ffmpeg": "checking", "deno": "checking"}
