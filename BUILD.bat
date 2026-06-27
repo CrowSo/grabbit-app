@@ -66,7 +66,7 @@ echo [5/5] Building installer with Inno Setup...
 if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" (
   "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=%APP_VERSION% grabbit.iss
   echo.
-  echo Done! Installer: dist\GrabbitSetup.exe  ^(v%APP_VERSION%^)
+  echo Done! Installer: dist\AppGrabbit-%APP_VERSION%-Setup.exe
 ) else (
   echo WARNING: Inno Setup not found. Install Inno Setup 6 to auto-build.
   echo Open grabbit.iss manually in Inno Setup — version %APP_VERSION% already set in app.py.
