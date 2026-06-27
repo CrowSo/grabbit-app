@@ -13,6 +13,14 @@ from pathlib import Path
 if getattr(sys, 'frozen', False):
     os.chdir(os.path.dirname(sys.executable))
 
+# ── Single-instance lock ────────────────────────────────────
+# If Grabbit is already running, just open the browser and exit.
+import ctypes
+_mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "Global\\GrabbitSingleInstance")
+if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+    webbrowser.open("http://localhost:5000")
+    sys.exit(0)
+
 def open_browser():
     time.sleep(1.5)
     webbrowser.open("http://localhost:5000")
@@ -22,10 +30,8 @@ def run_tray():
         import pystray
         from PIL import Image
 
-        # Load icon from static/icons/
         icon_path = Path("static/icons/icon128.png")
         if not icon_path.exists():
-            # Fallback: generate a simple icon
             img = Image.new('RGBA', (128, 128), (56, 189, 248, 255))
         else:
             img = Image.open(icon_path)
@@ -46,23 +52,32 @@ def run_tray():
         tray = pystray.Icon(
             name="Grabbit",
             icon=img,
-            title="Grabbit",
+            title="Grabbit — click to reopen",
             menu=menu,
         )
+
+        def _show_startup_notification():
+            time.sleep(2.5)
+            try:
+                tray.notify(
+                    "Grabbit is running in the background.\n"
+                    "Click the tray icon to reopen, or right-click to quit.",
+                    "Grabbit"
+                )
+            except Exception:
+                pass
+
+        threading.Thread(target=_show_startup_notification, daemon=True).start()
         tray.run()
 
     except Exception as e:
         print(f"[Grabbit] Tray error: {e}")
-        # If tray fails, just keep Flask running
         while True:
             time.sleep(60)
 
 import app as grabbit_app
 
 if __name__ == "__main__":
-    # Start browser
     threading.Thread(target=open_browser, daemon=True).start()
-    # Start tray icon in background thread
     threading.Thread(target=run_tray, daemon=False).start()
-    # Start Flask (blocking)
     grabbit_app.app.run(debug=False, port=5000)
