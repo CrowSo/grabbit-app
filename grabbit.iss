@@ -8,7 +8,6 @@
 #define AppPublisher "AppGrabbit"
 #define AppURL       "https://appgrabbit.com"
 #define AppExeName   "Grabbit.exe"
-#define SourceDir    "C:\Users\enriq\OneDrive\Documents\GitHub\grabbit-app"
 
 [Setup]
 AppId={{A7B3C9D1-E2F4-4A5B-8C6D-9E0F1A2B3C4D}
@@ -27,9 +26,9 @@ VersionInfoProductVersion={#AppVersion}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-OutputDir={#SourceDir}\dist
+OutputDir={#SourcePath}dist
 OutputBaseFilename=AppGrabbit-{#AppVersion}-Setup
-SetupIconFile={#SourceDir}\grabbit.ico
+SetupIconFile={#SourcePath}grabbit.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -50,7 +49,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Everything from PyInstaller output (already includes templates and static)
-Source: "{#SourceDir}\dist\Grabbit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourcePath}dist\Grabbit\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#AppName}";                  Filename: "{app}\{#AppExeName}"
