@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import subprocess
 import platform
@@ -37,7 +37,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6
 
 # ── Version ────────────────────────────────────────────────
 APP_VERSION     = "2.0.0"
-GITHUB_REPO     = "CrowSo/grabbit-app"
+GITHUB_REPO = "CrowSo/grabbit-releases"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
 update_status = {"available": False, "version": None, "url": None, "checked": False}
@@ -2891,7 +2891,7 @@ def update_check_status():
 @app.route("/api/update/apply", methods=["POST"])
 def update_apply():
     """Direct user to download the new installer."""
-    download_url = f"https://github.com/{GITHUB_REPO}/releases/latest/download/GrabbitSetup.exe"
+    download_url = f"https://github.com/{GITHUB_REPO}/releases/latest/download/AppGrabbitSetup.exe"
     return jsonify({"ok": True, "download_url": download_url})
 
 # ── AUTO-UPDATE CHECK ON STARTUP ──────────────────────────
