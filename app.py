@@ -2930,18 +2930,12 @@ def auto_setup():
         print(f"[Grabbit] deno setup failed: {e}")
 
     try:
-        import pillow_heif  # noqa
-        startup_status["pillow_heif"] = "ok"
-    except ImportError:
-        startup_status["pillow_heif"] = "installing"
-        subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', 'pillow-heif', '--quiet', '--disable-pip-version-check'],
-            check=True, timeout=120, **WIN_FLAGS,
-        )
+        import pillow_heif  # noqa — bundled via PyInstaller collect_all
         startup_status["pillow_heif"] = "ok"
     except Exception as e:
         startup_status["pillow_heif"] = "error"
-        print(f"[Grabbit] pillow-heif setup failed: {e}")
+        print(f"[Grabbit] pillow-heif not available: {e}")
+        # In dev mode: pip install pillow-heif
 
 @app.route("/api/startup_status")
 def api_startup_status():

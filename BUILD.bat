@@ -30,6 +30,7 @@ python -m PyInstaller ^
   --hidden-import PIL.Image ^
   --hidden-import pystray ^
   --hidden-import pystray._win32 ^
+  --collect-all pillow_heif ^
   launcher.py
 
 if errorlevel 1 (

@@ -1,12 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_all
 
+ph_datas, ph_binaries, ph_hiddenimports = collect_all('pillow_heif')
 
 a = Analysis(
     ['launcher.py'],
     pathex=[],
-    binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static')],
-    hiddenimports=['flask', 'werkzeug', 'jinja2', 'PIL', 'PIL.Image', 'pystray', 'pystray._win32'],
+    binaries=ph_binaries,
+    datas=[('templates', 'templates'), ('static', 'static')] + ph_datas,
+    hiddenimports=['flask', 'werkzeug', 'jinja2', 'PIL', 'PIL.Image', 'pystray', 'pystray._win32'] + ph_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
