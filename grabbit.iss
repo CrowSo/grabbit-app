@@ -4,9 +4,7 @@
 ; ============================================================
 
 #define AppName      "Grabbit"
-#ifndef AppVersion
-  #define AppVersion "2.0.0"
-#endif
+#define AppVersion   "2.1.0"
 #define AppPublisher "AppGrabbit"
 #define AppURL       "https://appgrabbit.com"
 #define AppExeName   "Grabbit.exe"

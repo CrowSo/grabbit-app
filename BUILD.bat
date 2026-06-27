@@ -55,21 +55,9 @@ if exist tools (
 )
 
 echo.
-echo [4/5] Extracting version from app.py...
-python -c "import re; m=re.search(r'APP_VERSION\s*=\s*\"([^\"]+)\"', open('app.py').read()); print(m.group(1))" > "%TEMP%\grabbit_version.txt"
-set /p APP_VERSION=<"%TEMP%\grabbit_version.txt"
-del "%TEMP%\grabbit_version.txt"
-echo Version: %APP_VERSION%
-
+echo [4/4] Syncing version from app.py to grabbit.iss...
+python -c "import re; v=re.search(r'APP_VERSION\s*=\s*\"([^\"]+)\"',open('app.py').read()).group(1); content=open('grabbit.iss').read(); updated=re.sub(r'#define AppVersion\s+\"[^\"]+\"',f'#define AppVersion   \"{v}\"',updated if (updated:=content) else content); open('grabbit.iss','w').write(updated); print(f'grabbit.iss actualizado: {v}')"
 echo.
-echo [5/5] Building installer with Inno Setup...
-if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" (
-  "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=%APP_VERSION% grabbit.iss
-  echo.
-  echo Done! Installer: dist\AppGrabbit-%APP_VERSION%-Setup.exe
-) else (
-  echo WARNING: Inno Setup not found. Install Inno Setup 6 to auto-build.
-  echo Open grabbit.iss manually in Inno Setup — version %APP_VERSION% already set in app.py.
-)
+echo Done! Ahora abre Inno Setup, carga grabbit.iss y presiona Alt+F9.
 echo.
 pause
