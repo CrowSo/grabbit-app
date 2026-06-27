@@ -67,6 +67,7 @@ TOOLS_DIR     = BASE_DIR / "tools"
 DATA_DIR      = BASE_DIR / "data"
 DOWNLOADS_DIR = Path.home() / "Downloads" / "Grabbit"
 TEMP_DIR      = DOWNLOADS_DIR / ".grabbit_tmp"   # hidden temp — user never sees .part files
+CONV_UPLOAD_DIR = DATA_DIR / "converter_uploads"
 STATE_FILE    = DATA_DIR / "queue.json"
 WATCHLIST_FILE = DATA_DIR / "watchlist.json"
 ERROR_LOG_FILE = DATA_DIR / "error_log.json"
@@ -74,6 +75,7 @@ ERROR_LOG_FILE = DATA_DIR / "error_log.json"
 TOOLS_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
 DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+CONV_UPLOAD_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 IS_WINDOWS = platform.system() == "Windows"
@@ -303,30 +305,34 @@ def update_item_status(item_id, status, extra=None):
 
 def get_channel_info(url):
     """Fetch channel name, id, and thumbnail from a channel URL.
-    Uses --flat-playlist --playlist-end 1 instead of --dump-json so yt-dlp
-    only needs one lightweight request instead of downloading full video info."""
-    cmd = [
-        str(YTDLP_PATH),
-        "--flat-playlist",
-        "--playlist-end", "1",
-        "--dump-single-json",
-        "--no-warnings",
-        "--quiet",
-        _yt_videos_url(url),
-    ]
-    result = subprocess.run(
-        cmd, capture_output=True, encoding="utf-8", errors="replace",
-        timeout=30, env=_ytdlp_env(), **WIN_FLAGS,
-    )
+    Tries /videos first, then /shorts (for Shorts-only channels)."""
+    def _try_tab(tab_url):
+        cmd = [
+            str(YTDLP_PATH),
+            "--flat-playlist",
+            "--playlist-end", "1",
+            "--dump-single-json",
+            "--no-warnings",
+            "--quiet",
+            tab_url,
+        ]
+        result = subprocess.run(
+            cmd, capture_output=True, encoding="utf-8", errors="replace",
+            timeout=30, env=_ytdlp_env(), **WIN_FLAGS,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        try:
+            return json.loads(result.stdout.strip())
+        except Exception:
+            return None
 
-    if result.returncode != 0:
-        raise Exception((result.stderr or "Could not fetch channel info").strip()[:200])
-
-    raw = result.stdout.strip()
-    if not raw:
+    # Try /videos first, fall back to /shorts for Shorts-only channels
+    data = _try_tab(_yt_videos_url(url))
+    if not data:
+        data = _try_tab(_yt_tab_url(url, "shorts"))
+    if not data:
         raise Exception("yt-dlp returned no data for this URL")
-
-    data = json.loads(raw)
 
     # Channel-level keys come from the top-level object
     channel_name = (
@@ -1806,25 +1812,29 @@ def _yt_videos_url(url):
 
 
 def _fetch_latest_video_id(channel_url):
-    """Fetch the single most-recent video ID from a channel. Very fast (~1-3s)."""
-    cmd = [
-        str(YTDLP_PATH),
-        "--flat-playlist", "--playlist-end", "1",
-        "--dump-single-json", "--no-warnings", "--quiet",
-        _yt_videos_url(channel_url),
-    ]
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=30,
-        env=_ytdlp_env(), **WIN_FLAGS,
-    )
-    if result.returncode != 0 or not result.stdout.strip():
-        raise Exception((result.stderr or "yt-dlp returned no data").strip()[:200])
+    """Fetch the single most-recent video ID from a channel. Tries /videos then /shorts."""
+    def _try_tab(tab_url):
+        cmd = [
+            str(YTDLP_PATH),
+            "--flat-playlist", "--playlist-end", "1",
+            "--dump-single-json", "--no-warnings", "--quiet",
+            tab_url,
+        ]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
+                           env=_ytdlp_env(), **WIN_FLAGS)
+        if r.returncode != 0 or not r.stdout.strip():
+            return None
+        try:
+            d = json.loads(r.stdout)
+            entries = d.get("entries") or []
+            return entries[0].get("id") if entries and entries[0] else None
+        except Exception:
+            return None
 
-    data    = json.loads(result.stdout)
-    entries = data.get("entries") or []
-    if not entries or not entries[0]:
-        return None
-    return entries[0].get("id")
+    vid = _try_tab(_yt_videos_url(channel_url))
+    if not vid:
+        vid = _try_tab(_yt_tab_url(channel_url, "shorts"))
+    return vid
 
 
 def _run_one_new_video_check(item, items_list):
@@ -2173,17 +2183,39 @@ def file_exists():
     except Exception:
         return jsonify({"exists": False})
 
+@app.route("/api/converter/default_folder")
+def api_converter_default_folder():
+    return jsonify({"path": str(DOWNLOADS_DIR)})
+
+
+@app.route("/api/open_folder", methods=["POST"])
+def api_open_folder():
+    data   = request.json or {}
+    target = data.get('path', '').strip()
+    if not target:
+        return jsonify({'error': 'No path'}), 400
+    folder = str(Path(target).parent) if Path(target).is_file() else target
+    try:
+        subprocess.Popen(['explorer', folder])
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route("/api/browse_folder", methods=["POST"])
 def browse_folder():
     try:
-        import tkinter as tk
-        from tkinter import filedialog
-        root = tk.Tk()
-        root.withdraw()
-        root.attributes('-topmost', True)
-        folder = filedialog.askdirectory(title="Select download folder", initialdir=str(DOWNLOADS_DIR))
-        root.destroy()
-        return jsonify({"path": folder or None})
+        script = (
+            "import tkinter as tk, json;"
+            "from tkinter import filedialog;"
+            "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
+            f"d=filedialog.askdirectory(title='Select folder',initialdir={repr(str(DOWNLOADS_DIR))});"
+            "root.destroy(); print(json.dumps(d or None))"
+        )
+        r = subprocess.run([sys.executable, '-c', script],
+                           capture_output=True, text=True, timeout=120, **WIN_FLAGS)
+        path = json.loads(r.stdout.strip()) if r.stdout.strip() else None
+        return jsonify({"path": path})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -2286,7 +2318,7 @@ _CONV_FORMATS = {
 _TYPE_FORMATS = {
     'video': ['mp4','mkv','mov','webm','avi','mp3','prores','dnxhd'],
     'audio': ['mp3','flac','wav','aac','m4a','ogg','opus'],
-    'image': ['jpg','png','webp','avif','jxl'],
+    'image': ['jpg','png','webp','avif'],
 }
 
 _FORMAT_LABELS = {
@@ -2294,7 +2326,7 @@ _FORMAT_LABELS = {
     'webm':'WebM (VP9)','avi':'AVI','prores':'ProRes HQ ★','dnxhd':'DNxHR HQ ★',
     'mp3':'MP3 (320k)','flac':'FLAC','wav':'WAV','aac':'AAC','m4a':'M4A',
     'ogg':'OGG','opus':'Opus','jpg':'JPEG','png':'PNG','webp':'WebP',
-    'avif':'AVIF','jxl':'JPEG XL',
+    'avif':'AVIF',
 }
 
 _conv_jobs        = {}
@@ -2356,7 +2388,7 @@ def _run_conv_media(job_id, src, out_format, out_dir):
 
 
 def _run_conv_image(job_id, src, out_format, out_dir):
-    ext_map = {'jpg':'.jpg','png':'.png','webp':'.webp','avif':'.avif','jxl':'.jxl'}
+    ext_map = {'jpg':'.jpg','png':'.png','webp':'.webp','avif':'.avif'}
     ext = ext_map.get(out_format, '.jpg')
     out_path = out_dir / (src.stem + ext)
     if out_path.exists():
@@ -2365,17 +2397,13 @@ def _run_conv_image(job_id, src, out_format, out_dir):
         _conv_jobs[job_id].update(pct=30, msg='Converting...')
     try:
         from PIL import Image
+        try:
+            import pillow_heif
+            pillow_heif.register_heif_opener()
+        except ImportError:
+            pass
         img = Image.open(str(src))
-        if out_format == 'jxl':
-            try:
-                import pillow_jxl  # noqa — registers JXL format
-                img.save(str(out_path), format='JXL', quality=90)
-            except ImportError:
-                with _conv_lock:
-                    _conv_jobs[job_id].update(status='error', pct=0,
-                        msg='JPEG XL requires pillow-jxl-plugin. Run: pip install pillow-jxl-plugin')
-                return
-        elif out_format == 'avif':
+        if out_format == 'avif':
             try:
                 img.save(str(out_path), format='AVIF', quality=60)
             except Exception:
@@ -2442,6 +2470,13 @@ def _run_conv_job(job_id, input_path, out_format, out_folder):
     except Exception as e:
         with _conv_lock:
             _conv_jobs[job_id].update(status='error', pct=0, msg=str(e)[:200])
+    finally:
+        # Delete temp upload after conversion (success or failure)
+        if str(CONV_UPLOAD_DIR) in str(src):
+            try:
+                src.unlink(missing_ok=True)
+            except Exception:
+                pass
 
 
 @app.route("/api/convert/start", methods=["POST"])
@@ -2482,34 +2517,69 @@ def api_convert_cancel(job_id):
     return jsonify({'ok': True})
 
 
+@app.route("/api/converter/upload", methods=["POST"])
+def api_converter_upload():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file'}), 400
+    f    = request.files['file']
+    name = f.filename or 'upload'
+    safe = f"{int(time.time() * 1000)}_{name}"
+    dest = CONV_UPLOAD_DIR / safe
+    f.save(str(dest))
+    return jsonify({'path': str(dest), 'name': name})
+
+
 @app.route("/api/browse_files", methods=["POST"])
 def api_browse_files():
     try:
-        import tkinter as tk
-        from tkinter import filedialog
-        root = tk.Tk()
-        root.withdraw()
-        root.attributes('-topmost', True)
-        files = filedialog.askopenfilenames(
-            title='Select files to convert',
-            initialdir=str(DOWNLOADS_DIR),
-            filetypes=[
-                ('Media files','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v '
-                               '*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma '
-                               '*.jpg *.jpeg *.png *.webp *.heic *.bmp *.tiff *.gif *.avif'),
-                ('Video','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts'),
-                ('Audio','*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma'),
-                ('Image','*.jpg *.jpeg *.png *.webp *.heic *.bmp *.tiff *.gif *.avif'),
-                ('All files','*.*'),
-            ]
+        script = (
+            "import tkinter as tk, json;"
+            "from tkinter import filedialog;"
+            "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
+            f"files=filedialog.askopenfilenames(title='Seleccionar archivos',initialdir={repr(str(DOWNLOADS_DIR))},"
+            "filetypes=["
+            "('Todos los archivos multimedia',"
+            "'*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp "
+            "*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac "
+            "*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif'),"
+            "('Video','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp'),"
+            "('Audio','*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac'),"
+            "('Imagen','*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif')"
+            "]);"
+            "root.destroy(); print(json.dumps(list(files)))"
         )
-        root.destroy()
-        return jsonify({'files': list(files) if files else []})
+        r = subprocess.run([sys.executable, '-c', script],
+                           capture_output=True, text=True, timeout=120, **WIN_FLAGS)
+        files = json.loads(r.stdout.strip()) if r.stdout.strip() else []
+        return jsonify({'files': files})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 # ─── THUMBNAIL DOWNLOADER ─────────────────────────────────────────────────────
+
+def _yt_title_from_oembed(video_id: str) -> str:
+    """Fetch video title via YouTube oEmbed API — instant, no yt-dlp needed."""
+    try:
+        oembed = f'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json'
+        req = urllib.request.Request(oembed, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            info = json.loads(resp.read())
+        return info.get('title') or video_id
+    except Exception:
+        return video_id
+
+
+@app.route("/api/thumbget/title", methods=["POST"])
+def api_thumbget_title():
+    """Return title + author for a YouTube video ID via oEmbed (fast, no yt-dlp)."""
+    data     = request.json or {}
+    video_id = data.get('video_id', '').strip()
+    if not video_id:
+        return jsonify({'error': 'No video_id'}), 400
+    title = _yt_title_from_oembed(video_id)
+    return jsonify({'title': title, 'video_id': video_id})
+
 
 @app.route("/api/thumbget/fetch", methods=["POST"])
 def api_thumbget_fetch():
@@ -2517,24 +2587,25 @@ def api_thumbget_fetch():
     url  = data.get('url', '').strip()
     if not url:
         return jsonify({'error': 'No URL'}), 400
-    try:
-        cmd = [str(YTDLP_PATH),'--dump-single-json','--no-download','--no-warnings','--quiet', url]
-        r   = subprocess.run(cmd, capture_output=True, text=True, timeout=30, env=_ytdlp_env(), **WIN_FLAGS)
-        if r.returncode != 0:
-            raise Exception((r.stderr or 'Could not fetch video info').strip()[:200])
-        info     = json.loads(r.stdout)
-        video_id = info.get('id', '')
-        title    = info.get('title', 'thumbnail')
-        sizes = [
-            {'id':'maxres','label':'MaxRes — 1280×720','url':f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'},
-            {'id':'sd',    'label':'SD — 640×480',     'url':f'https://img.youtube.com/vi/{video_id}/sddefault.jpg'},
-            {'id':'hq',    'label':'HQ — 480×360',     'url':f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'},
-            {'id':'mq',    'label':'MQ — 320×180',     'url':f'https://img.youtube.com/vi/{video_id}/mqdefault.jpg'},
-        ]
-        preview = f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'
-        return jsonify({'title': title, 'video_id': video_id, 'sizes': sizes, 'preview': preview})
-    except Exception as e:
-        return jsonify({'error': str(e)[:200]}), 500
+
+    vid_match = re.search(
+        r'(?:v=|youtu\.be/|embed/|shorts/|watch\?.*v=)([A-Za-z0-9_-]{11})',
+        url,
+    )
+    if not vid_match:
+        return jsonify({'error': 'Could not extract YouTube video ID from this URL'}), 400
+
+    video_id = vid_match.group(1)
+    title    = _yt_title_from_oembed(video_id)
+
+    sizes = [
+        {'id':'maxres','label':'MaxRes — 1280×720','url':f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'},
+        {'id':'sd',    'label':'SD — 640×480',     'url':f'https://img.youtube.com/vi/{video_id}/sddefault.jpg'},
+        {'id':'hq',    'label':'HQ — 480×360',     'url':f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'},
+        {'id':'mq',    'label':'MQ — 320×180',     'url':f'https://img.youtube.com/vi/{video_id}/mqdefault.jpg'},
+    ]
+    preview = f'https://img.youtube.com/vi/{video_id}/hqdefault.jpg'
+    return jsonify({'title': title, 'video_id': video_id, 'sizes': sizes, 'preview': preview})
 
 
 @app.route("/api/thumbget/save", methods=["POST"])
@@ -2582,7 +2653,7 @@ def api_thumbget_save():
 
 # ─── AUTO-UPDATE ON STARTUP ───────────────────────────────────────────────────
 
-startup_status = {"ytdlp": "checking", "ffmpeg": "checking", "deno": "checking"}
+startup_status = {"ytdlp": "checking", "ffmpeg": "checking", "deno": "checking", "pillow_heif": "checking"}
 
 # Engine (yt-dlp) update state — exposed to frontend via /api/engine/status
 engine_state = {
@@ -2857,6 +2928,20 @@ def auto_setup():
     except Exception as e:
         startup_status["deno"] = "error"
         print(f"[Grabbit] deno setup failed: {e}")
+
+    try:
+        import pillow_heif  # noqa
+        startup_status["pillow_heif"] = "ok"
+    except ImportError:
+        startup_status["pillow_heif"] = "installing"
+        subprocess.run(
+            [sys.executable, '-m', 'pip', 'install', 'pillow-heif', '--quiet', '--disable-pip-version-check'],
+            check=True, timeout=120, **WIN_FLAGS,
+        )
+        startup_status["pillow_heif"] = "ok"
+    except Exception as e:
+        startup_status["pillow_heif"] = "error"
+        print(f"[Grabbit] pillow-heif setup failed: {e}")
 
 @app.route("/api/startup_status")
 def api_startup_status():

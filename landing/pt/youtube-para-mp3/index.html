@@ -49,7 +49,7 @@
     "@type": "FAQPage",
     "mainEntity": [
       { "@type": "Question", "name": "Como converto um vídeo do YouTube para MP3?", "acceptedAnswer": { "@type": "Answer", "text": "Instale o Grabbit para Windows, cole o link do YouTube, selecione o formato Apenas áudio e clique em baixar. O Grabbit extrai o áudio e salva como MP3 de alta qualidade direto no seu PC — sem nuvem, sem conta." } },
-      { "@type": "Question", "name": "Converter YouTube para MP3 é grátis?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Grabbit permite converter YouTube para MP3 grátis, com 2 downloads por dia no plano Free. O Pro remove o limite por $8.99/mês." } },
+      { "@type": "Question", "name": "Converter YouTube para MP3 é grátis?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Grabbit é gratuito com um plano gratuito permanente — 10 downloads individuais, 1 sessão em lote e 2 transcrições, sem prazo. Para downloads MP3 ilimitados, o Pro começa em $8.99/mês ou $59.99/ano." } },
       { "@type": "Question", "name": "Qual qualidade de áudio eu recebo?", "acceptedAnswer": { "@type": "Answer", "text": "O Grabbit extrai a faixa de áudio original do YouTube e converte para MP3 em até 320 kbps — a melhor qualidade que a fonte oferece." } },
       { "@type": "Question", "name": "Funciona sem instalar nada no navegador?", "acceptedAnswer": { "@type": "Answer", "text": "O Grabbit é um app de desktop que roda no seu PC. Ao contrário dos conversores web, não tem anúncios, nem limites de tamanho, e seu áudio nunca é enviado para um servidor." } }
     ]
@@ -66,13 +66,42 @@
     .prose-page ol, .prose-page ul { color: var(--text2); line-height: 1.8; padding-left: 20px; margin-bottom: 16px; }
     .prose-page li { margin-bottom: 8px; }
     .updated { color: var(--text3); font-size: 0.85rem; margin-bottom: 32px; display: block; }
+    .breadcrumb { font-size: 0.82rem; color: var(--text3); margin-bottom: 24px; }
+    .breadcrumb a { color: var(--text3); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { margin: 0 6px; }
     .quick-answer { background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 20px 24px; margin: 24px 0; }
     .quick-answer strong { color: var(--accent); display: block; margin-bottom: 6px; font-family: var(--sora); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .quick-answer p { margin: 0; }
+    .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 32px; }
+    .stat-pill { background: var(--card); border: 1px solid var(--border); border-radius: 99px; padding: 6px 16px; font-size: 0.82rem; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+    .stat-pill b { color: var(--accent); font-weight: 700; }
+    .feature-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0 40px; }
+    .feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 18px; }
+    .feature-card-icon { font-size: 1.5rem; margin-bottom: 10px; }
+    .feature-card h3 { font-family: var(--sora); font-size: 0.92rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+    .feature-card p { font-size: 0.85rem; color: var(--text2); margin: 0; line-height: 1.6; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 24px 0 40px; font-size: 0.9rem; }
+    .comparison-table th { font-family: var(--sora); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text3); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .comparison-table th:nth-child(2) { color: var(--accent); }
+    .comparison-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .comparison-table td:first-child { color: var(--text3); font-size: 0.85rem; }
+    .tick { color: #22c55e; font-weight: 700; }
+    .cross { color: var(--text3); }
+    .faq-list { margin: 24px 0 40px; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .faq-item strong { font-family: var(--sora); font-size: 0.92rem; color: var(--text); display: block; margin-bottom: 6px; }
+    .faq-item p { font-size: 0.9rem; color: var(--text2); margin: 0; line-height: 1.7; }
     .cta-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; text-align: center; margin: 48px 0; }
     .cta-box h3 { font-family: var(--sora); color: var(--text); font-size: 1.3rem; margin-bottom: 8px; }
     .cta-box p { color: var(--text2); margin-bottom: 24px; }
     .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .steps-list { list-style: none; padding: 0; margin: 20px 0 40px; display: flex; flex-direction: column; gap: 14px; }
+    .step-item { display: flex; gap: 16px; align-items: flex-start; }
+    .step-num { min-width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-family: var(--sora); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .step-text { color: var(--text2); line-height: 1.7; font-size: 0.95rem; padding-top: 4px; }
+    .step-text b { color: var(--text); }
   </style>
 </head>
 <body>
@@ -86,6 +115,7 @@
     <li><a href="/pt/#features">Recursos</a></li>
     <li><a href="/pt/#extension">Extensão</a></li>
     <li><a href="/pt/#pricing">Preços</a></li>
+    <li><a href="/pt/blog/">Blog</a></li>
     <li><a href="https://discord.gg/mtBMQ5bW3x" target="_blank">Discord</a></li>
   </ul>
   <div class="nav-right">
@@ -99,43 +129,143 @@
 </nav>
 
 <div class="prose-page">
-  <h1>YouTube para MP3<br/><span style="color:var(--accent);">Baixe o áudio do YouTube em alta qualidade</span></h1>
-  <span class="updated">Atualizado: junho de 2026 · 3 min de leitura</span>
+  <div class="breadcrumb">
+    <a href="/pt/">Início</a><span>›</span><span>YouTube para MP3</span>
+  </div>
+  <h1>YouTube para MP3<br/><span style="color:var(--accent);">Baixe áudio em alta qualidade — sem anúncios</span></h1>
+  <span class="updated">Atualizado: junho de 2026 · 4 min de leitura</span>
+
+  <div class="stat-pills">
+    <div class="stat-pill"><b>320 kbps</b> qualidade máxima</div>
+    <div class="stat-pill"><b>100%</b> local — sem nuvem</div>
+    <div class="stat-pill"><b>Sem anúncios</b> ou malware</div>
+    <div class="stat-pill"><b>Playlists</b> completas (Pro)</div>
+    <div class="stat-pill"><b>1.700+</b> usuários no Windows</div>
+  </div>
 
   <div class="quick-answer">
     <strong>Resposta rápida</strong>
-    <p>Para converter um vídeo do YouTube para MP3: instale o Grabbit para Windows, cole o link do vídeo, escolha o formato <strong style="color:var(--text);">Apenas áudio</strong> e clique em baixar. O MP3 é salvo direto no seu PC em até 320 kbps — sem anúncios, sem nuvem, sem conta.</p>
+    <p>Para converter YouTube para MP3 no PC: instale o <strong style="color:var(--text);">Grabbit para Windows</strong>, cole o link do vídeo, escolha <strong style="color:var(--text);">Apenas áudio</strong> e clique em baixar. O MP3 é salvo direto no seu PC em até 320 kbps — sem anúncios, sem nuvem, sem conta.</p>
   </div>
 
-  <p>Transformar um vídeo do YouTube em MP3 é a maneira mais fácil de ouvir música, podcasts, palestras ou entrevistas offline. A maioria dos conversores online de "YouTube para MP3" limita a qualidade, enche você de anúncios e envia seu arquivo para um servidor primeiro. O Grabbit faz diferente: é um app de desktop grátis que extrai o áudio localmente no seu PC e salva um MP3 limpo e de alta qualidade em segundos.</p>
-
-  <h2>Como converter YouTube para MP3 no PC</h2>
-  <ol>
-    <li>Baixe o app grátis do <strong style="color:var(--text);">Grabbit para Windows</strong> e execute o instalador.</li>
-    <li>Abra o Grabbit e cole a URL do vídeo do YouTube no campo de entrada.</li>
-    <li>Clique em <strong style="color:var(--text);">Buscar</strong> para carregar as informações do vídeo.</li>
-    <li>Selecione o formato <strong style="color:var(--text);">Apenas áudio</strong>.</li>
-    <li>Clique em <strong style="color:var(--text);">Adicionar à fila</strong> — o MP3 é extraído e salvo no seu PC.</li>
-  </ol>
-
-  <h2>Por que usar um app em vez de um conversor online?</h2>
-  <ul>
-    <li><strong style="color:var(--text);">Mais qualidade</strong> — o Grabbit pega a faixa de áudio original e converte em até 320 kbps, não os 128 kbps da maioria dos sites.</li>
-    <li><strong style="color:var(--text);">Sem anúncios ou botões falsos</strong> — os conversores web são cheios de botões de "download" com malware. O Grabbit é um app limpo.</li>
-    <li><strong style="color:var(--text);">Privado</strong> — seu áudio é extraído no seu próprio computador e nunca é enviado para lugar nenhum.</li>
-    <li><strong style="color:var(--text);">Sem limites de tamanho ou duração</strong> — converta álbuns completos, podcasts longos ou sets de DJ.</li>
-    <li><strong style="color:var(--text);">Modo batch</strong> — cole até 50 links e converta uma playlist inteira para MP3 de uma vez (Pro).</li>
+  <h2>Como converter YouTube para MP3 — passo a passo</h2>
+  <ul class="steps-list">
+    <li class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-text"><b>Baixe o Grabbit para Windows</b> — o app é grátis e pesa menos de 80 MB. Execute o instalador, pronto em 30 segundos.</div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-text"><b>Copie a URL do vídeo</b> do YouTube e cole no campo de entrada do Grabbit.</div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-text">Clique em <b>Buscar</b> — o Grabbit carrega o título, miniatura e formatos disponíveis do vídeo.</div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-text">Selecione o formato <b>Apenas áudio</b> e escolha a qualidade (até 320 kbps).</div>
+    </li>
+    <li class="step-item">
+      <div class="step-num">5</div>
+      <div class="step-text">Clique em <b>Adicionar à fila</b> — o Grabbit extrai o áudio e salva o MP3 direto na sua pasta de downloads.</div>
+    </li>
   </ul>
 
-  <h2>Converter YouTube para MP3 é grátis?</h2>
-  <p>Sim. O plano Free do Grabbit permite converter até 2 vídeos por dia para MP3 sem custo. Se você converte bastante — playlists, podcasts, bibliotecas de música — o Pro remove o limite diário e desbloqueia o modo batch por $8.99/mês ou $59.99/ano.</p>
+  <h2>Grabbit vs conversores online de YouTube para MP3</h2>
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Grabbit (app)</th>
+        <th>Conversores web</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Qualidade de áudio</td>
+        <td><span class="tick">✓</span> Até 320 kbps</td>
+        <td><span class="cross">✗</span> Máx 128 kbps</td>
+      </tr>
+      <tr>
+        <td>Anúncios</td>
+        <td><span class="tick">✓</span> Zero anúncios</td>
+        <td><span class="cross">✗</span> Pop-ups e botões falsos</td>
+      </tr>
+      <tr>
+        <td>Privacidade</td>
+        <td><span class="tick">✓</span> 100% local, sem nuvem</td>
+        <td><span class="cross">✗</span> Seu áudio é enviado aos servidores deles</td>
+      </tr>
+      <tr>
+        <td>Playlists completas</td>
+        <td><span class="tick">✓</span> Modo batch (Pro)</td>
+        <td><span class="cross">✗</span> Um vídeo por vez</td>
+      </tr>
+      <tr>
+        <td>Limite de duração</td>
+        <td><span class="tick">✓</span> Sem limites</td>
+        <td><span class="cross">✗</span> Geralmente 30–90 min</td>
+      </tr>
+      <tr>
+        <td>Risco de malware</td>
+        <td><span class="tick">✓</span> App limpo, código aberto</td>
+        <td><span class="cross">✗</span> Botões de download maliciosos</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <h2>É legal converter YouTube para MP3?</h2>
-  <p>Converter vídeos do YouTube para MP3 para ouvir offline de forma pessoal é uma área cinzenta que varia por país. Viola os Termos de Serviço do YouTube, mas geralmente não é perseguido para uso pessoal. Nunca baixe música com direitos autorais para redistribuição comercial.</p>
+  <h2>Por que o Grabbit e não um site de conversão?</h2>
+  <div class="feature-cards">
+    <div class="feature-card">
+      <div class="feature-card-icon">🎧</div>
+      <h3>Qualidade original</h3>
+      <p>O Grabbit extrai a faixa de áudio original e converte em até 320 kbps. Os conversores web recodificam o áudio e perdem qualidade.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">🔒</div>
+      <h3>100% privado</h3>
+      <p>Seu áudio nunca sai do seu PC. Sem servidores de terceiros, sem cookies de rastreamento, sem histórico de downloads na nuvem.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">⚡</div>
+      <h3>Rápido e estável</h3>
+      <p>Sem páginas lentas nem fila de espera. O Grabbit baixa e converte localmente em velocidade máxima.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">📦</div>
+      <h3>Playlists completas</h3>
+      <p>Converta um álbum inteiro ou uma playlist de podcasts para MP3 de uma só vez com o modo batch Pro.</p>
+    </div>
+  </div>
+
+  <h2>Perguntas frequentes</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <strong>Converter YouTube para MP3 com o Grabbit é grátis?</strong>
+      <p>Sim. O Grabbit é gratuito com um plano gratuito permanente — 10 downloads individuais, 1 sessão em lote e 2 transcrições, sem prazo. Se você baixa bastante (playlists, podcasts, bibliotecas de música), o Pro desbloqueia downloads ilimitados e modo batch por $8.99/mês ou $59.99/ano.</p>
+    </div>
+    <div class="faq-item">
+      <strong>Qual qualidade de áudio eu recebo?</strong>
+      <p>O Grabbit extrai a faixa de áudio original do YouTube e converte para MP3 em até 320 kbps — a melhor qualidade que a fonte oferece. Os conversores web típicos limitam a 128 kbps.</p>
+    </div>
+    <div class="faq-item">
+      <strong>Funciona sem extensão de navegador?</strong>
+      <p>Sim. O Grabbit é um app standalone para Windows que funciona de forma independente. Também inclui uma extensão opcional para Chrome para enviar vídeos com um clique, mas não é obrigatória.</p>
+    </div>
+    <div class="faq-item">
+      <strong>É legal converter YouTube para MP3?</strong>
+      <p>Para uso pessoal offline é uma área cinzenta que varia por país. Viola os ToS do YouTube mas raramente é processado para uso pessoal. Não use o Grabbit para redistribuir conteúdo com direitos autorais.</p>
+    </div>
+    <div class="faq-item">
+      <strong>Posso converter playlists completas para MP3?</strong>
+      <p>Sim, com Pro. O modo batch do Grabbit permite adicionar até 50 links à fila e convertê-los todos para MP3 de uma vez — ideal para podcasts, álbuns de música ou séries de aulas.</p>
+    </div>
+  </div>
 
   <div class="cta-box">
     <h3>Converta YouTube para MP3 — Grátis</h3>
-    <p>O Grabbit é a forma mais limpa de extrair áudio do YouTube no Windows. Plano grátis, sem conta, até 320 kbps.</p>
+    <p>App para Windows · 320 kbps · Sem anúncios · Sem nuvem · 1.700+ usuários</p>
     <div class="cta-btns">
       <a href="https://github.com/CrowSo/grabbit-app/releases/latest/download/GrabbitSetup.exe" class="btn-hero primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>

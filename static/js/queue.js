@@ -29,6 +29,18 @@ window.addToQueue = function(item) {
   startDownload(item);
 };
 
+// ─── Add already-completed item (e.g. thumbnail) ───────────
+// Renders it directly as "done" without going through /api/download or polling.
+window.addCompletedItem = function(item) {
+  item.status = 'done';
+  queue.push(item);
+  renderQueueItem(item);
+  updateItemUI(item.id, { status: 'done', pct: 100 });
+  updateQueueBadge(queue.filter(i => i.status !== 'done' && i.status !== 'error').length);
+  persistQueue();
+  window.addToLibrary && window.addToLibrary(item);
+};
+
 // ─── Render ────────────────────────────────────────────────
 function renderQueueItem(item) {
   queueEmpty.style.display = 'none';
@@ -52,7 +64,7 @@ function renderQueueItem(item) {
       <div class="queue-meta">
         <span>${platformIcons[item.platform] || '🔗'} ${item.platform || 'Unknown'}</span>
         <span>${formatLabel(item.format)}</span>
-        <span>${item.quality === 'best' ? 'Best quality' : item.quality + 'p'}</span>
+        <span>${item.format === 'image' ? (item.quality || 'MaxRes') : item.quality === 'best' ? 'Best quality' : item.quality + 'p'}</span>
         ${item.startTime ? `<span>✂ ${item.startTime}–${item.endTime || 'end'}</span>` : ''}
         <span class="status-pill waiting" id="status-${item.id}">Waiting</span>
       </div>
@@ -513,7 +525,7 @@ window.showToast = showToast;
 
 // ─── Helpers ──────────────────────────────────────────────
 function formatLabel(format) {
-  return { 'video+audio': 'MP4', 'video': 'Video', 'audio': 'MP3', 'text': 'Transcript' }[format] || format;
+  return { 'video+audio': 'MP4', 'video': 'Video', 'audio': 'MP3', 'text': 'Transcript', 'image': 'Thumbnail' }[format] || format;
 }
 
 function escapeHtml(str) {

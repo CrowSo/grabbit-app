@@ -183,6 +183,62 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- ── Converter pages ── -->
+  <url>
+    <loc>https://appgrabbit.com/video-to-prores/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-prores/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-prores/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-prores/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-prores/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/video-a-prores/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-prores/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-prores/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-prores/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-prores/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/video-para-prores/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-prores/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-prores/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-prores/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-prores/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/video-to-dnxhr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/es/video-a-dnxhr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://appgrabbit.com/pt/video-para-dnxhr/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://appgrabbit.com/es/video-a-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://appgrabbit.com/pt/video-para-dnxhr/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://appgrabbit.com/video-to-dnxhr/"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- ── Legal ── -->
   <url>
     <loc>https://appgrabbit.com/privacy/</loc>

@@ -8,6 +8,17 @@ const libraryContent = document.getElementById('library-content');
 const libraryEmpty   = document.getElementById('library-empty');
 
 // IDs the user explicitly removed — the polling loop must never re-add them
+// Auto-clean: remove deterministic thumb IDs (thumb_<11chars>, no timestamp) that
+// were written by a buggy version — they block future downloads of the same video.
+(function _cleanBadThumbIds() {
+  try {
+    const raw     = JSON.parse(localStorage.getItem('grabbit-library-removed') || '[]');
+    const cleaned = raw.filter(id => !/^thumb_[A-Za-z0-9_-]{11}$/.test(id));
+    if (cleaned.length !== raw.length) {
+      localStorage.setItem('grabbit-library-removed', JSON.stringify(cleaned));
+    }
+  } catch { /* ignore */ }
+})();
 const removedIds = new Set(JSON.parse(localStorage.getItem('grabbit-library-removed') || '[]'));
 
 function persistRemovedIds() {
@@ -178,8 +189,10 @@ function renderLibrary() {
     if (filter !== 'all') {
       if (filter === 'text') {
         if (i.format !== 'text') return false;
+      } else if (filter === 'thumbnail') {
+        if (i.platform !== 'thumbnail') return false;
       } else if (filter === 'other') {
-        if (['youtube','tiktok','instagram','facebook'].includes(i.platform)) return false;
+        if (['youtube','tiktok','instagram','facebook','thumbnail'].includes(i.platform)) return false;
         if (i.format === 'text') return false;
       } else {
         if (i.platform !== filter) return false;
@@ -235,8 +248,8 @@ function renderLibrary() {
     items.forEach(item => {
       const el        = document.createElement('div');
       el.className    = 'lib-item';
-      const typeClass = item.format === 'audio' ? 'audio' : item.format === 'text' ? 'text' : 'video';
-      const typeLabel = item.format === 'audio' ? 'MP3' : item.format === 'text' ? 'TXT' : 'MP4';
+      const typeClass = item.format === 'audio' ? 'audio' : item.format === 'text' ? 'text' : item.format === 'image' ? 'image' : 'video';
+      const typeLabel = item.format === 'audio' ? 'MP3' : item.format === 'text' ? 'TXT' : item.format === 'image' ? (item.filename?.split('.').pop()?.toUpperCase() || 'IMG') : 'MP4';
       const thumbSrc = item.thumbnail
         ? `/api/thumbnail?url=${encodeURIComponent(item.thumbnail)}`
         : `/api/placeholder_thumb?platform=${item.platform || 'other'}`;
@@ -281,7 +294,7 @@ function renderLibrary() {
           <div class="lib-title" style="${item.missing ? 'color:var(--text-muted);text-decoration:line-through;' : ''}">${escapeHtml(item.title)}</div>
           <div class="lib-platform platform-${(item.platform || 'other').toLowerCase()}">${item.platform || ''}</div>
           <div class="lib-sub">
-            <span class="lib-meta-item">${typeClass === 'audio' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'} ${item.quality === 'best' ? 'HQ' : (item.quality || 'HQ') + 'p'}</span>
+            <span class="lib-meta-item">${typeClass === 'audio' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' : typeClass === 'image' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>'} ${typeClass === 'image' ? (item.quality || 'MaxRes') : item.quality === 'best' ? 'HQ' : (item.quality || 'HQ') + 'p'}</span>
             ${durStr}
             ${sizeStr}
           </div>
