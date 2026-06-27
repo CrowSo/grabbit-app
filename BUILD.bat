@@ -4,7 +4,7 @@ echo   Grabbit — Build Script
 echo ============================================
 echo.
 
-cd /d "C:\Users\enriq\OneDrive\Documents\GitHub\grabbit-app"
+cd /d "%~dp0"
 
 echo [1/4] Generating grabbit.ico...
 python -c "from PIL import Image; imgs=[Image.open('extension/icons/icon128.png').resize((s,s)) for s in [16,32,48,128]]; imgs[0].save('grabbit.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(128,128)])"
