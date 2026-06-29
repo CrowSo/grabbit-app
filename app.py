@@ -36,7 +36,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://esfaxfwrftiafghtxmnk.supa
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZmF4ZndyZnRpYWZnaHR4bW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzEwODIsImV4cCI6MjA5MDg0NzA4Mn0.Hm1QEEBd2WXq7nM_JE7U4Zqhp5GZ-L4a_QnasL3GvXM")
 
 # ── Version ────────────────────────────────────────────────
-APP_VERSION     = "2.1.0"
+APP_VERSION     = "2.2.0"
 GITHUB_REPO = "CrowSo/grabbit-releases"
 GITHUB_API_URL  = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
