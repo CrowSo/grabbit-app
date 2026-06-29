@@ -2205,16 +2205,24 @@ def api_open_folder():
 @app.route("/api/browse_folder", methods=["POST"])
 def browse_folder():
     try:
-        script = (
-            "import tkinter as tk, json;"
-            "from tkinter import filedialog;"
-            "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
-            f"d=filedialog.askdirectory(title='Select folder',initialdir={repr(str(DOWNLOADS_DIR))});"
-            "root.destroy(); print(json.dumps(d or None))"
-        )
-        r = subprocess.run([sys.executable, '-c', script],
-                           capture_output=True, text=True, timeout=120, **WIN_FLAGS)
-        path = json.loads(r.stdout.strip()) if r.stdout.strip() else None
+        if getattr(sys, 'frozen', False):
+            import tkinter as tk
+            from tkinter import filedialog
+            root = tk.Tk(); root.withdraw(); root.attributes('-topmost', True)
+            d = filedialog.askdirectory(title='Select folder', initialdir=str(DOWNLOADS_DIR))
+            root.destroy()
+            path = d or None
+        else:
+            script = (
+                "import tkinter as tk, json;"
+                "from tkinter import filedialog;"
+                "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
+                f"d=filedialog.askdirectory(title='Select folder',initialdir={repr(str(DOWNLOADS_DIR))});"
+                "root.destroy(); print(json.dumps(d or None))"
+            )
+            r = subprocess.run([sys.executable, '-c', script],
+                               capture_output=True, text=True, timeout=120, **WIN_FLAGS)
+            path = json.loads(r.stdout.strip()) if r.stdout.strip() else None
         return jsonify({"path": path})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -2529,28 +2537,49 @@ def api_converter_upload():
     return jsonify({'path': str(dest), 'name': name})
 
 
+_CONV_FILETYPES = [
+    ('Todos los archivos multimedia',
+     '*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp '
+     '*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac '
+     '*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif'),
+    ('Video', '*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp'),
+    ('Audio', '*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac'),
+    ('Imagen', '*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif'),
+]
+
 @app.route("/api/browse_files", methods=["POST"])
 def api_browse_files():
     try:
-        script = (
-            "import tkinter as tk, json;"
-            "from tkinter import filedialog;"
-            "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
-            f"files=filedialog.askopenfilenames(title='Seleccionar archivos',initialdir={repr(str(DOWNLOADS_DIR))},"
-            "filetypes=["
-            "('Todos los archivos multimedia',"
-            "'*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp "
-            "*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac "
-            "*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif'),"
-            "('Video','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp'),"
-            "('Audio','*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac'),"
-            "('Imagen','*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif')"
-            "]);"
-            "root.destroy(); print(json.dumps(list(files)))"
-        )
-        r = subprocess.run([sys.executable, '-c', script],
-                           capture_output=True, text=True, timeout=120, **WIN_FLAGS)
-        files = json.loads(r.stdout.strip()) if r.stdout.strip() else []
+        if getattr(sys, 'frozen', False):
+            import tkinter as tk
+            from tkinter import filedialog
+            root = tk.Tk(); root.withdraw(); root.attributes('-topmost', True)
+            files = list(filedialog.askopenfilenames(
+                title='Seleccionar archivos',
+                initialdir=str(DOWNLOADS_DIR),
+                filetypes=_CONV_FILETYPES,
+            ))
+            root.destroy()
+        else:
+            script = (
+                "import tkinter as tk, json;"
+                "from tkinter import filedialog;"
+                "root=tk.Tk(); root.withdraw(); root.attributes('-topmost',True);"
+                f"files=filedialog.askopenfilenames(title='Seleccionar archivos',initialdir={repr(str(DOWNLOADS_DIR))},"
+                "filetypes=["
+                "('Todos los archivos multimedia',"
+                "'*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp "
+                "*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac "
+                "*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif'),"
+                "('Video','*.mp4 *.mkv *.mov *.webm *.avi *.wmv *.flv *.m4v *.ts *.mts *.3gp'),"
+                "('Audio','*.mp3 *.flac *.wav *.aac *.m4a *.ogg *.opus *.wma *.aiff *.alac'),"
+                "('Imagen','*.jpg *.jpeg *.png *.webp *.heic *.heif *.bmp *.tiff *.tif *.gif *.avif')"
+                "]);"
+                "root.destroy(); print(json.dumps(list(files)))"
+            )
+            r = subprocess.run([sys.executable, '-c', script],
+                               capture_output=True, text=True, timeout=120, **WIN_FLAGS)
+            files = json.loads(r.stdout.strip()) if r.stdout.strip() else []
         return jsonify({'files': files})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
